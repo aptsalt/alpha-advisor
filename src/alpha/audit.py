@@ -16,15 +16,39 @@ from typing import Any
 from . import config
 
 _last_hash = "GENESIS"
+_initialized = False
 
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _resume_chain() -> None:
+    """An append-only chained log must continue from where the file left off, not restart
+    at GENESIS — otherwise a new process appending to an existing log breaks the chain at
+    the join. On first write we adopt the last record's hash as our starting link."""
+    global _last_hash, _initialized
+    _initialized = True
+    if not os.path.exists(config.AUDIT_PATH):
+        return
+    last = None
+    with open(config.AUDIT_PATH, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                last = line
+    if last:
+        try:
+            _last_hash = json.loads(last)["hash"]
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+
 def log(event: str, payload: dict[str, Any], *, run_id: str = "") -> None:
     """Write one audit record, chaining each line's hash to the previous one."""
     global _last_hash
+    if not _initialized:
+        _resume_chain()
     record = {
         "ts": _now(),
         "run_id": run_id,

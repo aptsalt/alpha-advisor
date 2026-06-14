@@ -31,6 +31,21 @@ Set `ALPHA_PROVIDER=ollama` to drive it with a local model (e.g. `qwen2.5-coder`
 python tests/test_smoke.py        # 6 end-to-end tests, mock mode
 ```
 
+## As a service (deployable surface)
+
+```bash
+PYTHONPATH=src uvicorn alpha.api:app --port 8200
+curl -s -X POST localhost:8200/api/review -H "Content-Type: application/json" \
+     -d '{"request":"review Jane Harrington"}'                       # → run_id + briefing
+curl -s -X POST localhost:8200/api/review/run-1/decision -H "Content-Type: application/json" \
+     -d '{"decision":"approved"}'                                    # → resume + finalize
+```
+
+The graph is stateless; paused runs live in the checkpointer (`InMemorySaver` locally,
+Postgres in prod), so any replica can resume any run — see
+[`docs/deployment.md`](docs/deployment.md) for Azure Container Apps, OpenTelemetry tracing,
+and the Neo4j / Postgres / Azure AI Search swaps. Turn on per-node tracing with `ALPHA_TRACING=1`.
+
 ## What you'll see
 
 ```

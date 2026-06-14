@@ -20,8 +20,9 @@ is an implementation detail (see docs/frameworks.md).
 from __future__ import annotations
 
 from langgraph.graph import END, START, StateGraph
-from langgraph.checkpoint.memory import InMemorySaver
 
+from . import telemetry
+from .checkpoint import make_checkpointer
 from .state import AdvisorState
 from .nodes.plan import plan_node
 from .nodes.guardrails import (
@@ -36,20 +37,27 @@ from .nodes.finalize import finalize_node, discard_node
 
 
 def build_graph(checkpointer=None):
+    telemetry.setup()
     g = StateGraph(AdvisorState)
 
-    g.add_node("plan", plan_node)
-    g.add_node("input_guard", input_guard_node)
-    g.add_node("retrieve", retrieve_node)
-    g.add_node("rewrite", rewrite_node)
-    g.add_node("market", market_node)
-    g.add_node("compliance", compliance_node)
-    g.add_node("draft", draft_node)
-    g.add_node("output_guard", output_guard_node)
-    g.add_node("approval", approval_node)
-    g.add_node("finalize", finalize_node)
-    g.add_node("discard", discard_node)
-    g.add_node("refuse", refuse_node)
+    # Each node is wrapped with telemetry.traced(): a no-op unless ALPHA_TRACING=1, in
+    # which case every node invocation opens an OpenTelemetry span. The graph shape is
+    # unchanged either way — observability is a cross-cutting concern, not a node's job.
+    def node(name, fn):
+        g.add_node(name, telemetry.traced(name, fn))
+
+    node("plan", plan_node)
+    node("input_guard", input_guard_node)
+    node("retrieve", retrieve_node)
+    node("rewrite", rewrite_node)
+    node("market", market_node)
+    node("compliance", compliance_node)
+    node("draft", draft_node)
+    node("output_guard", output_guard_node)
+    node("approval", approval_node)
+    node("finalize", finalize_node)
+    node("discard", discard_node)
+    node("refuse", refuse_node)
 
     g.add_edge(START, "plan")
     g.add_edge("plan", "input_guard")
@@ -76,5 +84,6 @@ def build_graph(checkpointer=None):
     g.add_edge("discard", END)
 
     # A checkpointer is REQUIRED for interrupt()/resume to work — it persists the paused
-    # state between the interrupt and the human's resume.
-    return g.compile(checkpointer=checkpointer or InMemorySaver())
+    # state between the interrupt and the human's resume. Memory locally; Postgres in prod
+    # (ALPHA_CHECKPOINT_DB) so paused runs survive restarts and any worker can resume them.
+    return g.compile(checkpointer=checkpointer or make_checkpointer())

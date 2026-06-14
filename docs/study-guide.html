@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ALPHA Advisor — Study Guide</title>
+<style>
+  :root{
+    --bg:#0a0e14; --panel:#121823; --panel2:#0f141d; --line:#1f2937; --line2:#2a3646;
+    --txt:#e6edf3; --mut:#8b98a9; --dim:#5b6776;
+    --teal:#2dd4bf;   /* agent / flow */
+    --gold:#f0b429;   /* governance */
+    --blue:#6ea8fe;   /* RAG / retrieval */
+    --coral:#f0859b;  /* compliance / risk */
+    --green:#5ed18f;
+    --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;}
+  a{color:var(--teal);text-decoration:none}
+  code,.mono{font-family:var(--mono)}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:20;background:rgba(10,14,20,.86);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;gap:6px;align-items:center;height:52px;overflow-x:auto}
+  nav .brand{font-weight:800;color:var(--teal);margin-right:14px;white-space:nowrap}
+  nav a{color:var(--mut);font-size:12.5px;padding:6px 10px;border-radius:7px;white-space:nowrap}
+  nav a:hover{color:var(--txt);background:var(--panel)}
+
+  header.hero{padding:64px 0 40px;border-bottom:1px solid var(--line);
+    background:radial-gradient(900px 400px at 75% -10%,rgba(45,212,191,.10),transparent 60%)}
+  .kicker{color:var(--teal);font-family:var(--mono);font-size:12.5px;letter-spacing:.14em;text-transform:uppercase}
+  h1{font-size:42px;line-height:1.1;margin:12px 0 10px;letter-spacing:-.5px}
+  h1 .g{color:var(--teal)}
+  .lede{font-size:18px;color:var(--mut);max-width:760px}
+  .pipe{display:flex;flex-wrap:wrap;gap:6px;margin-top:26px}
+  .pipe span{font-family:var(--mono);font-size:11.5px;padding:5px 10px;border:1px solid var(--line2);
+    border-radius:99px;color:var(--mut)}
+  .pipe span.gov{border-color:rgba(240,180,41,.4);color:var(--gold)}
+  .pipe span.rag{border-color:rgba(110,168,254,.4);color:var(--blue)}
+  .pipe span.hitl{border-color:rgba(45,212,191,.45);color:var(--teal)}
+  .pipe b{color:var(--dim);align-self:center;padding:0 2px}
+
+  section{padding:48px 0;border-bottom:1px solid var(--line)}
+  h2{font-size:27px;margin:0 0 6px;letter-spacing:-.3px}
+  h2 .n{font-family:var(--mono);color:var(--teal);font-size:15px;margin-right:10px}
+  .sub{color:var(--mut);margin:0 0 26px;max-width:780px}
+  h3{font-size:17px;margin:26px 0 8px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:14px 0}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr 1fr}
+  @media(max-width:760px){.g2,.g3{grid-template-columns:1fr}}
+
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:6px;
+    border:1px solid var(--line2);color:var(--mut);margin-bottom:8px}
+  .tag.gov{border-color:rgba(240,180,41,.4);color:var(--gold)}
+  .tag.rag{border-color:rgba(110,168,254,.4);color:var(--blue)}
+  .tag.hitl{border-color:rgba(45,212,191,.45);color:var(--teal)}
+  .tag.risk{border-color:rgba(240,133,155,.45);color:var(--coral)}
+
+  pre{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--teal);
+    border-radius:10px;padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;
+    line-height:1.6;margin:12px 0}
+  pre .c{color:var(--dim)}      /* comment */
+  pre .k{color:var(--coral)}    /* keyword */
+  pre .s{color:var(--green)}    /* string */
+  pre .f{color:var(--blue)}     /* func/name */
+  pre.gov{border-left-color:var(--gold)}
+  pre.rag{border-left-color:var(--blue)}
+  pre.hitl{border-left-color:var(--teal)}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  td .mono{font-size:12px;color:var(--blue)}
+  .ok{color:var(--green)} .warn{color:var(--gold)} .fail{color:var(--coral)}
+
+  .callout{border:1px solid var(--line2);border-left:3px solid var(--gold);background:rgba(240,180,41,.05);
+    border-radius:10px;padding:14px 16px;margin:14px 0}
+  .callout.q{border-left-color:var(--teal);background:rgba(45,212,191,.05)}
+  .callout b{color:var(--txt)}
+  .muted{color:var(--mut)}
+  .small{font-size:13px}
+  ul.tight{margin:8px 0;padding-left:20px} ul.tight li{margin:4px 0}
+  .pillrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .pillrow .p{font-family:var(--mono);font-size:11.5px;padding:4px 9px;border-radius:7px;background:var(--panel2);border:1px solid var(--line)}
+  footer{padding:40px 0 80px;color:var(--dim);font-size:13px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 4px;font-size:12px;color:var(--mut)}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <span class="brand">◇ ALPHA Advisor</span>
+  <a href="#overview">Overview</a>
+  <a href="#flow">The Graph</a>
+  <a href="#walk">Request Walkthrough</a>
+  <a href="#rag">Agentic / Graph RAG</a>
+  <a href="#gov">Governance</a>
+  <a href="#hitl">Human-in-the-Loop</a>
+  <a href="#audit">Audit</a>
+  <a href="#frameworks">Frameworks</a>
+  <a href="#deploy">Deploy / Scale</a>
+  <a href="#interview">Interview Script</a>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="kicker">Study guide · Agentic AI / Agentic RAG Engineer</div>
+  <h1>ALPHA <span class="g">Advisor</span></h1>
+  <p class="lede">A multi-agent wealth-advisory copilot that prepares a client portfolio
+    review <b>under human supervision</b> — built so every line of the job posting is a
+    feature you can point at and explain. This page is your map of the code.</p>
+  <div class="pipe">
+    <span>plan</span><b>→</b><span class="gov">input_guard</span><b>→</b>
+    <span class="rag">retrieve ⇄ rewrite</span><b>→</b><span>market</span><b>→</b>
+    <span class="gov">compliance</span><b>→</b><span>draft</span><b>→</b>
+    <span class="gov">output_guard</span><b>→</b><span class="hitl">approval ⏸</span><b>→</b>
+    <span>finalize</span>
+  </div>
+  <div class="legend" style="margin-top:18px">
+    <span><i style="background:var(--teal)"></i>agent / flow</span>
+    <span><i style="background:var(--blue)"></i>RAG / retrieval</span>
+    <span><i style="background:var(--gold)"></i>governance</span>
+    <span><i style="background:var(--coral)"></i>compliance / risk</span>
+  </div>
+</div></header>
+
+<!-- OVERVIEW -->
+<section id="overview"><div class="wrap">
+  <h2><span class="n">00</span>What it is, in one breath</h2>
+  <p class="sub">An advisor asks for a review. The system plans the work, retrieves from
+    policy documents <i>and</i> a portfolio knowledge graph, calls a market-data tool, runs
+    compliance checks, drafts a <b>cited</b> briefing, then <b>pauses for advisor approval</b>
+    before finalizing — logging every step to a tamper-evident audit trail.</p>
+
+  <div class="grid g3">
+    <div class="card"><div class="tag rag">Agentic RAG</div>
+      <p class="small">Retrieval that <b>grades its own results</b> and rewrites + retries on
+        weak evidence — not one-shot RAG.</p></div>
+    <div class="card"><div class="tag">Vectors + graph</div>
+      <p class="small">Prose via a vector store; portfolio <b>structure</b> via a
+        client→holding→issuer→sector knowledge graph.</p></div>
+    <div class="card"><div class="tag gov">Governance both ends</div>
+      <p class="small">PII redaction + policy block in; citation / PII / disclaimer checks out;
+        3 compliance checks with reasons.</p></div>
+    <div class="card"><div class="tag hitl">Real HITL</div>
+      <p class="small">LangGraph <code>interrupt()</code> + <code>Command(resume=…)</code>.
+        The agent proposes; the advisor disposes.</p></div>
+    <div class="card"><div class="tag risk">Tamper-evident audit</div>
+      <p class="small">Append-only, hash-chained JSONL with a <code>verify()</code> that detects
+        any edit or deletion.</p></div>
+    <div class="card"><div class="tag">Provider-portable</div>
+      <p class="small"><code>mock</code> / <code>ollama</code> / <code>azure</code> by config —
+        the graph is identical, so it can run fully on-prem.</p></div>
+  </div>
+
+  <h3>The 60-second framing (say this first)</h3>
+  <div class="callout"><b>"I built a multi-agent wealth-advisory copilot on LangGraph.</b>
+    The orchestration is a stateful graph: it plans, runs <i>agentic</i> retrieval over both a
+    vector store and a knowledge graph, calls tools, runs compliance, drafts a cited briefing,
+    then hits a real human-in-the-loop interrupt where an advisor approves or rejects — and
+    every step writes to a hash-chained audit log. The whole thing is provider-portable across
+    mock, local Ollama, and Azure OpenAI, and it's deployable as a stateless service whose paused
+    runs live in a durable checkpointer, so it scales horizontally. The framework is swappable;
+    the orchestration contract is the asset."</div>
+</div></section>
+
+<!-- FLOW DIAGRAM -->
+<section id="flow"><div class="wrap">
+  <h2><span class="n">01</span>The orchestration graph</h2>
+  <p class="sub">This is <code>src/alpha/graph.py</code> — a LangGraph <code>StateGraph</code>.
+    Nodes are functions; edges are control flow. Two edges are <i>conditional</i> (diamonds):
+    the agentic-retrieval retry loop, and the human-decision branch.</p>
+
+  <div class="card" style="padding:10px">
+  <svg viewBox="0 0 760 720" width="100%" font-family="var(--mono)" font-size="12.5">
+    <defs>
+      <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L7,3 L0,6 Z" fill="#5b6776"/></marker>
+      <marker id="arrT" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L7,3 L0,6 Z" fill="#2dd4bf"/></marker>
+    </defs>
+    <style>
+      .box{rx:9;stroke-width:1.5;}
+      .nflow{fill:#101722;stroke:#2a3646}
+      .ngov{fill:#1a1606;stroke:#5a4a14}
+      .nrag{fill:#0c1626;stroke:#2c4670}
+      .nhitl{fill:#0a1f1c;stroke:#1f6157}
+      .nrisk{fill:#221016;stroke:#5e2a36}
+      .lbl{fill:#e6edf3;font-weight:600}
+      .sub2{fill:#8b98a9;font-size:10.5px}
+      .edge{stroke:#5b6776;stroke-width:1.5;fill:none}
+      .edgeT{stroke:#2dd4bf;stroke-width:1.5;fill:none;stroke-dasharray:4 3}
+      .cond{fill:#0f141d;stroke:#2dd4bf}
+      .condtxt{fill:#2dd4bf;font-size:10px}
+    </style>
+
+    <!-- START -->
+    <text x="120" y="26" text-anchor="middle" class="sub2">START</text>
+    <line x1="120" y1="32" x2="120" y2="50" class="edge" marker-end="url(#arr)"/>
+
+    <!-- plan -->
+    <rect class="box nflow" x="40" y="52" width="160" height="44"/>
+    <text x="120" y="74" text-anchor="middle" class="lbl">plan</text>
+    <text x="120" y="88" text-anchor="middle" class="sub2">intent · client · sub-tasks</text>
+    <line x1="120" y1="96" x2="120" y2="114" class="edge" marker-end="url(#arr)"/>
+
+    <!-- input_guard -->
+    <rect class="box ngov" x="40" y="116" width="160" height="44"/>
+    <text x="120" y="138" text-anchor="middle" class="lbl">input_guard</text>
+    <text x="120" y="152" text-anchor="middle" class="sub2">PII redact · policy block</text>
+    <!-- conditional after input_guard -->
+    <line x1="120" y1="160" x2="120" y2="178" class="edge" marker-end="url(#arr)"/>
+    <polygon points="120,180 150,200 120,220 90,200" class="cond"/>
+    <text x="120" y="204" text-anchor="middle" class="condtxt">blocked?</text>
+    <!-- blocked → refuse -->
+    <line x1="150" y1="200" x2="280" y2="200" class="edge" marker-end="url(#arr)"/>
+    <rect class="box nrisk" x="282" y="178" width="120" height="44"/>
+    <text x="342" y="200" text-anchor="middle" class="lbl">refuse</text>
+    <text x="342" y="214" text-anchor="middle" class="sub2">→ END</text>
+    <!-- ok → retrieve -->
+    <line x1="120" y1="220" x2="120" y2="244" class="edge" marker-end="url(#arr)"/>
+    <text x="135" y="238" class="sub2">ok</text>
+
+    <!-- retrieve -->
+    <rect class="box nrag" x="40" y="246" width="160" height="50"/>
+    <text x="120" y="268" text-anchor="middle" class="lbl">retrieve</text>
+    <text x="120" y="283" text-anchor="middle" class="sub2">vector + graph · grade</text>
+    <!-- conditional retry -->
+    <line x1="120" y1="296" x2="120" y2="314" class="edge" marker-end="url(#arr)"/>
+    <polygon points="120,316 154,338 120,360 86,338" class="cond"/>
+    <text x="120" y="335" text-anchor="middle" class="condtxt">evidence</text>
+    <text x="120" y="347" text-anchor="middle" class="condtxt">weak?</text>
+    <!-- weak → rewrite (loop back, teal dashed) -->
+    <path d="M154,338 H250 V268 H205" class="edgeT" marker-end="url(#arrT)"/>
+    <rect class="box nrag" x="252" y="246" width="120" height="44" style="stroke:#2dd4bf"/>
+    <text x="312" y="268" text-anchor="middle" class="lbl" style="fill:#2dd4bf">rewrite</text>
+    <text x="312" y="282" text-anchor="middle" class="sub2">broaden · retry</text>
+    <text x="200" y="258" class="condtxt">weak ↺</text>
+    <!-- proceed → market -->
+    <line x1="120" y1="360" x2="120" y2="384" class="edge" marker-end="url(#arr)"/>
+    <text x="138" y="378" class="sub2">proceed</text>
+
+    <!-- market -->
+    <rect class="box nflow" x="40" y="386" width="160" height="44"/>
+    <text x="120" y="408" text-anchor="middle" class="lbl">market</text>
+    <text x="120" y="422" text-anchor="middle" class="sub2">tool: market data</text>
+    <line x1="120" y1="430" x2="120" y2="448" class="edge" marker-end="url(#arr)"/>
+
+    <!-- compliance -->
+    <rect class="box ngov" x="40" y="450" width="160" height="50"/>
+    <text x="120" y="471" text-anchor="middle" class="lbl">compliance</text>
+    <text x="120" y="486" text-anchor="middle" class="sub2">suitability·restricted·conc.</text>
+    <line x1="120" y1="500" x2="120" y2="518" class="edge" marker-end="url(#arr)"/>
+
+    <!-- draft -->
+    <rect class="box nflow" x="40" y="520" width="160" height="44"/>
+    <text x="120" y="542" text-anchor="middle" class="lbl">draft</text>
+    <text x="120" y="556" text-anchor="middle" class="sub2">cited briefing</text>
+    <line x1="120" y1="564" x2="120" y2="582" class="edge" marker-end="url(#arr)"/>
+
+    <!-- output_guard -->
+    <rect class="box ngov" x="40" y="584" width="160" height="44"/>
+    <text x="120" y="606" text-anchor="middle" class="lbl">output_guard</text>
+    <text x="120" y="620" text-anchor="middle" class="sub2">citations·PII·disclaimer</text>
+    <line x1="120" y1="628" x2="120" y2="646" class="edge" marker-end="url(#arr)"/>
+
+    <!-- approval (HITL) -->
+    <rect class="box nhitl" x="40" y="648" width="160" height="50" style="stroke:#2dd4bf"/>
+    <text x="120" y="669" text-anchor="middle" class="lbl" style="fill:#2dd4bf">approval ⏸</text>
+    <text x="120" y="684" text-anchor="middle" class="sub2">interrupt() → human</text>
+    <!-- approval branch -->
+    <path d="M200,673 H300" class="edge" marker-end="url(#arr)"/>
+    <polygon points="300,673 330,693 360,673 330,653" class="cond"/>
+    <text x="330" y="677" text-anchor="middle" class="condtxt">decision</text>
+    <line x1="360" y1="673" x2="430" y2="673" class="edge" marker-end="url(#arr)"/>
+    <rect class="box nflow" x="432" y="651" width="130" height="44"/>
+    <text x="497" y="673" text-anchor="middle" class="lbl">finalize</text>
+    <text x="497" y="687" text-anchor="middle" class="sub2">approved → END</text>
+    <line x1="330" y1="653" x2="330" y2="600" class="edge" marker-end="url(#arr)"/>
+    <rect class="box nrisk" x="265" y="556" width="130" height="44"/>
+    <text x="330" y="578" text-anchor="middle" class="lbl">discard</text>
+    <text x="330" y="592" text-anchor="middle" class="sub2">rejected → END</text>
+
+    <!-- audit side rail -->
+    <rect x="600" y="52" width="140" height="646" rx="10" fill="#0c0f16" stroke="#1f2937" stroke-dasharray="4 4"/>
+    <text x="670" y="80" text-anchor="middle" class="lbl" style="fill:#f0859b">audit.py</text>
+    <text x="670" y="100" text-anchor="middle" class="sub2">every node writes</text>
+    <text x="670" y="116" text-anchor="middle" class="sub2">one append-only,</text>
+    <text x="670" y="132" text-anchor="middle" class="sub2">hash-chained record</text>
+    <text x="670" y="156" text-anchor="middle" class="sub2">───────────</text>
+    <text x="670" y="180" text-anchor="middle" class="sub2">telemetry.py</text>
+    <text x="670" y="196" text-anchor="middle" class="sub2">one OTel span</text>
+    <text x="670" y="212" text-anchor="middle" class="sub2">per node</text>
+  </svg>
+  </div>
+  <p class="small muted">Colors: <span style="color:var(--gold)">gold = governance</span>,
+    <span style="color:var(--blue)">blue = RAG</span>,
+    <span style="color:var(--teal)">teal = the agentic loop &amp; the human gate</span>,
+    <span style="color:var(--coral)">coral = a stop (refuse / discard)</span>.</p>
+
+  <pre>g.add_edge(START, <span class="s">"plan"</span>)
+g.add_edge(<span class="s">"plan"</span>, <span class="s">"input_guard"</span>)
+<span class="c"># a policy-blocked request never reaches retrieval / client data</span>
+g.add_conditional_edges(<span class="s">"input_guard"</span>, route_after_input_guard,
+                        {<span class="s">"blocked"</span>:<span class="s">"refuse"</span>, <span class="s">"ok"</span>:<span class="s">"retrieve"</span>})
+<span class="c"># agentic retrieval loop: weak evidence → rewrite → retrieve again; else proceed</span>
+g.add_conditional_edges(<span class="s">"retrieve"</span>, should_retry,
+                        {<span class="s">"rewrite"</span>:<span class="s">"rewrite"</span>, <span class="s">"proceed"</span>:<span class="s">"market"</span>})
+g.add_edge(<span class="s">"rewrite"</span>, <span class="s">"retrieve"</span>)
+<span class="c"># ... market → compliance → draft → output_guard → approval ...</span>
+g.add_conditional_edges(<span class="s">"approval"</span>, route_after_approval,
+                        {<span class="s">"finalize"</span>:<span class="s">"finalize"</span>, <span class="s">"discard"</span>:<span class="s">"discard"</span>})</pre>
+
+  <h3>Why one typed state object</h3>
+  <p class="small">Every node receives the same <code>AdvisorState</code> (a <code>TypedDict</code>)
+    and returns a <i>partial</i> update that LangGraph merges. The <code>trace</code> field uses an
+    <code>add</code> reducer so each node <i>appends</i> a step. Because all state is explicit and
+    typed, the run is inspectable and <b>the audit trail is a byproduct, not extra work</b> —
+    in a regulated setting, explainability <i>is</i> the architecture.</p>
+  <pre>class AdvisorState(TypedDict, total=False):
+    request:str; client_id:str; intent:str
+    safe_request:str; input_guard:dict          <span class="c"># governance</span>
+    query:str; retries:int; docs:list; retrieval_grade:float   <span class="c"># agentic RAG</span>
+    market:dict; compliance:list; compliance_status:str         <span class="c"># tools + checks</span>
+    draft:str; citations:list; output_guard:dict
+    decision:str; advisor_note:str; final:str                   <span class="c"># human-in-the-loop</span>
+    trace: Annotated[list, add]   <span class="c"># reducer: each node appends its step</span></pre>
+</div></section>
+
+<!-- WALKTHROUGH -->
+<section id="walk"><div class="wrap">
+  <h2><span class="n">02</span>Walkthrough: one real request</h2>
+  <p class="sub"><code>python run.py "Prepare a portfolio review for Jane Harrington" --approve</code>
+    — what actually happens, node by node. (Jane is synthetic client C-1001.)</p>
+  <table>
+    <tr><th>Node</th><th>What it does</th><th>Result on this run</th></tr>
+    <tr><td class="mono">plan</td><td>Classify intent, resolve client, decompose</td>
+        <td>intent=<b>portfolio_review</b>, client=C-1001</td></tr>
+    <tr><td class="mono">input_guard</td><td>Redact PII, check for prohibited intent</td>
+        <td>no PII, not blocked → continue</td></tr>
+    <tr><td class="mono">retrieve</td><td>Search vectors + graph, grade each doc</td>
+        <td>kept <b>6</b> docs, mean grade 0.33</td></tr>
+    <tr><td class="mono">market</td><td>Tool call for holdings' prices/returns</td>
+        <td>3 holdings, portfolio YTD +0.5%</td></tr>
+    <tr><td class="mono">compliance</td><td>Suitability / restricted / concentration</td>
+        <td><span class="ok">suitability ✓</span> · <span class="fail">restricted ✗ (NFE)</span> ·
+            <span class="warn">concentration ▲ (78% Vantage)</span></td></tr>
+    <tr><td class="mono">draft</td><td>Compose cited briefing from evidence</td>
+        <td><b>9</b> citations, grounded prose</td></tr>
+    <tr><td class="mono">output_guard</td><td>Citations present? PII? disclaimer?</td>
+        <td>clean → disclaimer appended</td></tr>
+    <tr><td class="mono">approval ⏸</td><td><code>interrupt()</code> — pause for advisor</td>
+        <td>advisor approves → finalize</td></tr>
+  </table>
+  <div class="callout"><b>The money detail for the interview:</b> compliance flags a
+    <b>78% single-issuer concentration in "Vantage Funds"</b>. No single holding is 78% — the
+    graph <i>aggregated two different funds (GLX + AGG) issued by the same firm</i>. That's a
+    multi-hop relationship query a vector store cannot answer. It's the cleanest one-sentence
+    proof of <i>why a knowledge graph earns its place</i> next to vectors.</div>
+</div></section>
+
+<!-- RAG -->
+<section id="rag"><div class="wrap">
+  <h2><span class="n">03</span>Agentic RAG &amp; Graph RAG</h2>
+  <p class="sub">The single most-probed topic for this role. Know these three cold.</p>
+  <div class="grid g3">
+    <div class="card"><div class="tag">Naive RAG</div>
+      <p class="small">embed query → top-k → stuff into prompt → generate. <b>One shot, no
+        self-check.</b> Will answer confidently from the wrong context.</p></div>
+    <div class="card"><div class="tag rag">Agentic RAG</div>
+      <p class="small">An agent <b>decides</b> what to retrieve, <b>grades</b> the results, and
+        <b>rewrites + retries</b> on weak evidence. The difference between "plausible" and
+        "defensible".</p></div>
+    <div class="card"><div class="tag">Graph RAG</div>
+      <p class="small">Retrieve over a knowledge graph; answers <b>multi-hop / structural</b>
+        questions (concentration, relationships, lineage) similarity can't.</p></div>
+  </div>
+
+  <h3>The agentic loop — <code>nodes/retrieve.py</code></h3>
+  <pre class="rag"><span class="k">def</span> <span class="f">retrieve_node</span>(state):
+    <span class="c"># 1. pick sources — vector (prose) + graph (this client's structure)</span>
+    candidates = corpus.vector_store().search(query, TOP_K)
+    <span class="k">if</span> client_id: candidates += corpus.knowledge_graph().as_facts(client_id)
+    <span class="c"># 2. grade each; keep only those above threshold</span>
+    graded = [{**c,<span class="s">"score"</span>:rel} <span class="k">for</span> c <span class="k">in</span> candidates
+              <span class="k">if</span> (rel:=_grade(query,c)) &gt;= GRADE_THRESHOLD]
+    <span class="k">return</span> {<span class="s">"docs"</span>:graded, <span class="s">"retrieval_grade"</span>:mean, <span class="s">"retries"</span>:retries+1}
+
+<span class="k">def</span> <span class="f">should_retry</span>(state):   <span class="c"># the conditional edge</span>
+    weak = state[<span class="s">"retrieval_grade"</span>] &lt; GRADE_THRESHOLD
+    <span class="k">if</span> weak <span class="k">and</span> has_budget <span class="k">and</span> <span class="k">not</span> state[<span class="s">"docs"</span>]: <span class="k">return</span> <span class="s">"rewrite"</span>
+    <span class="k">return</span> <span class="s">"proceed"</span></pre>
+
+  <h3>The graph — <code>rag/graphrag.py</code></h3>
+  <p class="small">Schema: <code>(Client)-[:HOLDS{weight}]→(Security)-[:ISSUED_BY]→(Issuer)</code>,
+    and <code>(Security)-[:IN_SECTOR]→(Sector)</code>, plus
+    <code>(Security)-[:RESTRICTED_BY]→(Policy)</code>. Sector hangs off the <i>security</i>, not
+    the issuer — because one fund family issues both an equity and a bond fund. Getting that
+    edge direction right is the kind of structural correctness a graph buys you.</p>
+  <pre class="rag"><span class="k">def</span> <span class="f">issuer_concentration</span>(self, client_id):
+    <span class="c"># aggregate portfolio weight per issuer — the multi-hop query vectors can't do</span>
+    agg = {}
+    <span class="k">for</span> h <span class="k">in</span> self.holdings(client_id):
+        agg[h[<span class="s">"issuer"</span>]] = agg.get(h[<span class="s">"issuer"</span>],0) + h[<span class="s">"weight"</span>]
+    <span class="k">return</span> agg   <span class="c"># {"Vantage Funds":0.78, "NorthForge Inc.":0.22}</span></pre>
+  <p class="small muted">Local backend is networkx (serverless). Production swaps to <b>Neo4j</b>
+    via <code>rag/neo4j_adapter.py</code> — the same methods in Cypher, selected by
+    <code>ALPHA_GRAPH_DB=bolt://…</code>, falling back to networkx if absent.</p>
+</div></section>
+
+<!-- GOVERNANCE -->
+<section id="gov"><div class="wrap">
+  <h2><span class="n">04</span>Governance, guardrails &amp; compliance</h2>
+  <p class="sub">In regulated wealth management this isn't a feature you bolt on — it's what makes
+    an autonomous agent deployable at all. Guards sit on <b>both ends</b>; compliance is three
+    explicit checks with reasons.</p>
+
+  <div class="grid g2">
+    <div class="card"><div class="tag gov">input_guard (before the model)</div>
+      <ul class="tight small">
+        <li><b>PII redaction</b> — the model never needs an SSN to reason about allocation;
+          minimizing what it sees is itself a control.</li>
+        <li><b>Policy block</b> — a prohibited request (e.g. "guarantee returns") routes straight
+          to <code>refuse</code> and <b>never touches retrieval or client data</b>.</li>
+      </ul></div>
+    <div class="card"><div class="tag gov">output_guard (before a human sees it)</div>
+      <ul class="tight small">
+        <li><b>Grounding</b> — rejects a draft with no citations.</li>
+        <li><b>PII leak scrub</b> — re-redacts anything that slipped through.</li>
+        <li><b>Disclaimer</b> — appends the "not investment advice until approved" notice.</li>
+      </ul></div>
+  </div>
+
+  <h3>Three compliance checks — <code>nodes/compliance.py</code></h3>
+  <table>
+    <tr><th>Check</th><th>Question</th><th>On Jane</th></tr>
+    <tr><td class="mono">suitability</td><td>Does the allocation match the documented risk profile?</td>
+        <td class="ok">pass (64% equity vs 60% target, within tolerance)</td></tr>
+    <tr><td class="mono">restricted_list</td><td>Does any holding touch a restricted-list edge?</td>
+        <td class="fail">FAIL — NorthForge Energy is restricted</td></tr>
+    <tr><td class="mono">concentration</td><td>Any single issuer over the policy limit?</td>
+        <td class="warn">WARN — Vantage 78% &gt; 25% limit</td></tr>
+  </table>
+  <p class="small">Worst finding sets <code>compliance_status</code>; findings become <i>cited
+    evidence</i> in the briefing and are shown to the advisor at the gate. Autonomy <b>with</b> a
+    hard human backstop — not instead of one.</p>
+</div></section>
+
+<!-- HITL -->
+<section id="hitl"><div class="wrap">
+  <h2><span class="n">05</span>Human-in-the-loop — the interrupt</h2>
+  <p class="sub">The advisor is always the last actor before the client. This is a <i>real</i>
+    LangGraph <code>interrupt()</code>, not a prompt that says "ask the user".</p>
+  <pre class="hitl"><span class="k">from</span> langgraph.types <span class="k">import</span> interrupt
+
+<span class="k">def</span> <span class="f">approval_node</span>(state):
+    request = {<span class="s">"draft"</span>:state[<span class="s">"draft"</span>], <span class="s">"citations"</span>:state[<span class="s">"citations"</span>],
+               <span class="s">"compliance"</span>:state[<span class="s">"compliance"</span>]}
+    <span class="c"># execution PAUSES here; full state is persisted to the checkpointer</span>
+    response = interrupt(request)
+    <span class="k">return</span> {<span class="s">"decision"</span>:response[<span class="s">"decision"</span>], <span class="s">"advisor_note"</span>:response.get(<span class="s">"note"</span>,<span class="s">""</span>)}</pre>
+  <p class="small">When the advisor decides, the caller resumes:
+    <code>app.invoke(Command(resume={"decision":"approved"}), thread)</code>. The value passed to
+    <code>resume</code> becomes the return of <code>interrupt()</code>, and a conditional edge
+    routes to <code>finalize</code> or <code>discard</code>.</p>
+  <div class="callout q"><b>Why this is the senior answer:</b> the pause persists <i>full graph
+    state</i> to a checkpointer. With a Postgres checkpointer that state survives a process
+    restart and can be resumed by <b>any</b> replica — so a run can wait hours for an advisor and
+    the service still scales horizontally. The interrupt isn't a UI trick; it's a durable
+    workflow primitive.</div>
+</div></section>
+
+<!-- AUDIT -->
+<section id="audit"><div class="wrap">
+  <h2><span class="n">06</span>Auditability — tamper-evident by construction</h2>
+  <p class="sub"><code>src/alpha/audit.py</code>. Every governed action appends one immutable JSONL
+    line whose hash <b>chains to the previous line</b>, so a deletion or edit anywhere is
+    detectable.</p>
+  <pre class="rag"><span class="k">def</span> <span class="f">log</span>(event, payload, run_id=<span class="s">""</span>):
+    record = {<span class="s">"ts"</span>:now, <span class="s">"event"</span>:event, <span class="s">"payload"</span>:payload, <span class="s">"prev_hash"</span>:_last_hash}
+    record[<span class="s">"hash"</span>] = sha256(_last_hash + body).hexdigest()[:16]   <span class="c"># chain link</span>
+    _last_hash = record[<span class="s">"hash"</span>]
+    append_jsonl(record)
+
+<span class="k">def</span> <span class="f">verify</span>():   <span class="c"># re-walk the chain; any tampering breaks a link → False</span></pre>
+  <p class="small">Two complementary records: the <b>audit log</b> is the immutable compliance
+    trail ("what was decided, on what evidence, by whom"); <b>OpenTelemetry spans</b>
+    (<code>telemetry.py</code>, <code>ALPHA_TRACING=1</code>) are the operational trace ("what ran,
+    how long, where it failed"). Verified locally: a full run emits 10 node spans and a
+    tamper-check that passes.</p>
+</div></section>
+
+<!-- FRAMEWORKS -->
+<section id="frameworks"><div class="wrap">
+  <h2><span class="n">07</span>Framework comparison</h2>
+  <p class="sub">The JD names four. Built on LangGraph; able to speak to all. The orchestration
+    contract is the asset — each framework would re-implement <i>this graph</i>.</p>
+  <table>
+    <tr><th></th><th>LangGraph ✅</th><th>AutoGen</th><th>CrewAI</th><th>Semantic Kernel</th></tr>
+    <tr><td>Model</td><td>State machine / graph</td><td>Conversing agents</td><td>Role-based crew</td><td>Plugins + planner</td></tr>
+    <tr><td>Control flow</td><td>Explicit nodes/edges, cycles</td><td>Emergent from chat</td><td>Sequential / hierarchical</td><td>Planner composes plugins</td></tr>
+    <tr><td>Human-in-loop</td><td><b>First-class</b> <code>interrupt()</code></td><td>UserProxyAgent</td><td>Human-input task</td><td>Function filters/hooks</td></tr>
+    <tr><td>Durability</td><td>Typed state + checkpointers</td><td>Conversation history</td><td>Task context</td><td>Kernel memory</td></tr>
+    <tr><td>Best fit here</td><td class="ok">regulated, auditable, HITL</td><td>research multi-agent</td><td>quick role pipelines</td><td>Azure/.NET enterprise</td></tr>
+  </table>
+  <div class="callout q"><b>If they ask "why LangGraph not Semantic Kernel?"</b> — "The workflow
+    is a stateful graph with conditional loops and a durable human pause, which is LangGraph's
+    exact model and gives me deterministic, inspectable, resumable control — what a regulated
+    setting needs. Semantic Kernel is the natural pick if the bank is Azure/.NET end-to-end; the
+    nodes port to plugins, the graph shape and guardrails don't change. I keep the orchestration
+    contract fixed so the framework stays swappable."</div>
+</div></section>
+
+<!-- DEPLOY -->
+<section id="deploy"><div class="wrap">
+  <h2><span class="n">08</span>Deploy &amp; scale (Azure)</h2>
+  <p class="sub">Every production swap is an <b>adapter change behind an existing seam</b> — the
+    graph, guardrails, and audit logic don't move.</p>
+  <table>
+    <tr><th>Local default</th><th>Production</th><th>Seam</th></tr>
+    <tr><td>numpy vector store</td><td>Azure AI Search / PGVector</td><td class="mono">rag/vectorstore.py</td></tr>
+    <tr><td>networkx graph</td><td>Neo4j (<code>ALPHA_GRAPH_DB</code>)</td><td class="mono">rag/neo4j_adapter.py</td></tr>
+    <tr><td>InMemorySaver</td><td>Postgres checkpointer</td><td class="mono">checkpoint.py</td></tr>
+    <tr><td>mock / ollama</td><td>Azure OpenAI</td><td class="mono">llm.py</td></tr>
+    <tr><td>console spans</td><td>Azure Monitor / Jaeger (OTLP)</td><td class="mono">telemetry.py</td></tr>
+  </table>
+  <p class="small"><b>The scale story:</b> the graph is stateless; paused runs live in the durable
+    checkpointer keyed by <code>run_id</code>. So the FastAPI service (<code>api.py</code>) runs as
+    N replicas on <b>Azure Container Apps</b> (scale-to-zero, HTTP autoscale via
+    <code>deploy/main.bicep</code>), and a run started by one replica can be resumed by another.
+    Secrets via Key Vault / Container Apps secrets; non-root container; PII redacted pre-model so
+    it can run fully in-VPC.</p>
+  <div class="pillrow">
+    <span class="p">POST /api/review → run_id + briefing</span>
+    <span class="p">POST /api/review/{id}/decision → resume</span>
+    <span class="p">az acr build → bicep → Container Apps</span>
+  </div>
+</div></section>
+
+<!-- INTERVIEW -->
+<section id="interview"><div class="wrap">
+  <h2><span class="n">09</span>Interview Q&amp;A — fast recall</h2>
+  <p class="sub">Each answer is anchored to code you actually wrote. Full set in
+    <code>docs/interview-qa.md</code>.</p>
+
+  <div class="callout q"><b>Naive vs Agentic RAG?</b> Naive = embed→top-k→generate, one shot.
+    Agentic = retrieval is a decision: grade results, rewrite &amp; retry on weak evidence. In
+    wealth management that's the line between a plausible and a defensible answer.
+    <span class="muted">(retrieve.py, should_retry edge.)</span></div>
+
+  <div class="callout q"><b>Vector vs graph — when each?</b> Vectors for prose similarity ("what's
+    the suitability policy?"); graph for multi-hop structure ("how concentrated is this client in
+    one issuer?"). My demo catches a 78% issuer concentration that requires aggregating two funds
+    — invisible to vector search. <span class="muted">(graphrag.py.)</span></div>
+
+  <div class="callout q"><b>How does HITL work technically?</b> LangGraph <code>interrupt()</code>
+    persists full state to the checkpointer and surfaces an approval payload; I resume with
+    <code>Command(resume=…)</code>. With Postgres it survives restarts and any replica can resume —
+    durable, scalable. <span class="muted">(approval.py, api.py.)</span></div>
+
+  <div class="callout q"><b>How is it explainable / auditable?</b> One typed state object; every node
+    appends a trace step and writes a hash-chained audit record; every claim in the briefing is
+    cited. For any output I can show what ran, on what evidence, what compliance found, and which
+    human approved it. <span class="muted">(audit.py.)</span></div>
+
+  <div class="callout q"><b>Deploy &amp; scale on Azure?</b> Stateless graph + durable checkpointer →
+    containerize → Azure Container Apps, Azure OpenAI, Azure AI Search + Neo4j, OTel→Azure Monitor,
+    audit→WORM storage. Horizontal because any worker resumes any paused run.
+    <span class="muted">(deployment.md.)</span></div>
+
+  <div class="callout q"><b>Preventing hallucinated numbers?</b> Market figures come from a <i>tool</i>,
+    not model text; the draft only cites provided evidence; the output guard rejects an uncited
+    draft. PII never reaches the model. <span class="muted">(market.py, guardrails.py.)</span></div>
+</div></section>
+
+<footer><div class="wrap">
+  ALPHA Advisor study guide · all data synthetic · open <code>docs/architecture.md</code>,
+  <code>docs/frameworks.md</code>, <code>docs/interview-qa.md</code>, <code>docs/deployment.md</code>
+  for the long form. Run it: <code>python run.py "Prepare a portfolio review for Jane Harrington" --approve</code>
+</div></footer>
+
+</body>
+</html>

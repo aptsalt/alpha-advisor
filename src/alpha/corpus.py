@@ -6,6 +6,7 @@ starts instantly.
 """
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 
 from .data import synth
@@ -21,5 +22,18 @@ def vector_store() -> VectorStore:
 
 
 @lru_cache(maxsize=1)
-def knowledge_graph() -> KnowledgeGraph:
+def knowledge_graph():
+    """networkx by default; Neo4j when ALPHA_GRAPH_DB is set and reachable.
+
+    The two backends share a public surface, so callers (retrieval, compliance) are
+    backend-agnostic. Neo4j failures fall back to networkx so dev never needs a DB."""
+    if os.getenv("ALPHA_GRAPH_DB", "").startswith(("bolt", "neo4j")):
+        try:
+            from .rag.neo4j_adapter import from_env
+
+            kg = from_env()
+            kg.load_synthetic()
+            return kg
+        except Exception as e:  # noqa: BLE001
+            print(f"[corpus] Neo4j unavailable ({e}); using in-memory graph.")
     return synth.build_graph()

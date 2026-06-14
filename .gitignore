@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 .env
-audit-log.jsonl
+audit*.jsonl
 tests/_test_audit.jsonl
 .pytest_cache/
+docs/study-*.png
