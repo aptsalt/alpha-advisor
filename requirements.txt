@@ -1,0 +1,10 @@
+langgraph>=1.0
+langgraph-checkpoint>=2.0
+numpy>=1.26
+networkx>=3.2
+httpx>=0.27
+python-dotenv>=1.0
+# optional, for the production swaps documented in docs/frameworks.md:
+#   chromadb / pgvector / azure-search-documents   (vector DB)
+#   neo4j                                           (knowledge graph)
+#   langsmith / opentelemetry-sdk                   (tracing)
