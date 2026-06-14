@@ -66,9 +66,12 @@ Postgres in prod), so any replica can resume any run.
 This is a stateful agent (the approval gate pauses a real run), so it wants a **persistent
 process** — [`render.yaml`](render.yaml) defines a free Render web service:
 
-1. Push this repo to GitHub (done if you're reading it there).
-2. [render.com](https://render.com) → **New → Blueprint** → pick this repo → Render reads
-   `render.yaml` and deploys. You get a URL like `https://alpha-advisor.onrender.com`.
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/aptsalt/alpha-advisor)
+
+1. Click the button (or [render.com](https://render.com) → **New → Blueprint** → this repo).
+   Sign in with GitHub, approve — Render reads `render.yaml` and deploys. You get a URL like
+   `https://alpha-advisor.onrender.com`.
+2. Put that URL in the **Live demo** line at the top of this README.
 3. (optional) Set the repo variable `DEPLOY_URL` to that URL — the included GitHub Action
    pings it every 14 min so the free instance never cold-starts for a recruiter.
 
