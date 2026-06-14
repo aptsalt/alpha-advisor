@@ -14,7 +14,10 @@ scalable behind a load balancer on Azure Container Apps.
 """
 from __future__ import annotations
 
+import os
+
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from langgraph.types import Command
 from pydantic import BaseModel
 
@@ -22,6 +25,13 @@ from . import audit, config
 from .graph import build_graph
 
 app = FastAPI(title="ALPHA Advisor", version="1.0")
+_WEB = os.path.join(os.path.dirname(__file__), "web")
+
+
+@app.get("/")
+def home() -> FileResponse:
+    """Serve the single-page advisor UI (same origin as the API, so no CORS needed)."""
+    return FileResponse(os.path.join(_WEB, "index.html"))
 _graph = build_graph()  # one compiled graph; its checkpointer persists runs across requests
 _counter = {"n": 0}
 

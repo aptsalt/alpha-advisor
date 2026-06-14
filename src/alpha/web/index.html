@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ALPHA Advisor</title>
+<style>
+  :root{
+    --bg:#0a0e14;--panel:#121823;--panel2:#0f141d;--line:#1f2937;--line2:#2a3646;
+    --txt:#e6edf3;--mut:#8b98a9;--dim:#5b6776;
+    --teal:#2dd4bf;--gold:#f0b429;--blue:#6ea8fe;--coral:#f0859b;--green:#5ed18f;
+    --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(900px 420px at 78% -12%,rgba(45,212,191,.10),transparent 60%) ,var(--bg);
+    color:var(--txt);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+    height:100vh;display:flex;flex-direction:column}
+  code,.mono{font-family:var(--mono)}
+  .app{max-width:900px;margin:0 auto;width:100%;display:flex;flex-direction:column;height:100vh}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:14px 20px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:11px}
+  .logo{color:var(--teal);font-size:20px}
+  .title{font-weight:800;letter-spacing:.2px}
+  .subtitle{font-size:11.5px;color:var(--mut)}
+  .badge{font-size:11px;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:4px 11px;font-family:var(--mono)}
+  .badge.live{color:var(--green);border-color:rgba(94,209,143,.4)}
+
+  .stream{flex:1;overflow-y:auto;padding:22px 20px 8px}
+  .empty{max-width:640px;margin:6vh auto 0;text-align:center}
+  .empty h1{font-size:29px;line-height:1.2;margin:0 0 10px}
+  .empty h1 span{color:var(--teal)}
+  .empty p{color:var(--mut);margin-bottom:22px}
+  .suggest{display:grid;gap:10px;text-align:left}
+  .suggest button{background:var(--panel);border:1px solid var(--line);color:var(--txt);
+    border-radius:12px;padding:13px 15px;font-size:13.5px;cursor:pointer;font-family:inherit;transition:.15s}
+  .suggest button:hover{border-color:var(--teal);transform:translateY(-1px)}
+  .hint{font-size:11.5px;color:var(--dim);margin-top:22px}
+
+  .row{display:flex;margin-bottom:18px}
+  .row.user{justify-content:flex-end}
+  .bubble{background:linear-gradient(135deg,#155e54,#0e463e);color:#eafffb;padding:10px 14px;
+    border-radius:14px 14px 4px 14px;max-width:78%;font-size:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+    max-width:96%;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+
+  .trace{border-left:2px solid var(--line);padding:2px 0 6px 12px;margin-bottom:14px;display:flex;flex-direction:column;gap:5px}
+  .tstep{font-size:12px;color:var(--teal);display:flex;gap:8px;opacity:0;transform:translateY(3px);
+    animation:rise .32s ease forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .tstep .nd{font-family:var(--mono);color:var(--blue);min-width:96px}
+  .tstep .gov{color:var(--gold)} .tstep .rag{color:var(--blue)} .tstep .hitl{color:var(--teal)}
+  .tstep .meta{color:var(--mut)}
+
+  .comp{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:14px;background:var(--panel2)}
+  .comp h4{margin:0 0 9px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+  .comp .st{font-weight:700}
+  .comp .st.pass{color:var(--green)} .comp .st.warn{color:var(--gold)} .comp .st.fail{color:var(--coral)}
+  .finding{display:flex;gap:9px;font-size:12.5px;padding:4px 0}
+  .finding .g{width:16px;text-align:center}
+  .finding.pass .g{color:var(--green)} .finding.warn .g{color:var(--gold)} .finding.fail .g{color:var(--coral)}
+  .finding .chk{font-family:var(--mono);color:var(--mut);min-width:104px}
+
+  .answer{font-size:14.5px;white-space:pre-wrap;line-height:1.65}
+  .answer h3{font-size:16px;margin:2px 0 8px}
+  .answer strong{color:#fff}
+  .answer .cite{color:var(--teal);font-weight:700;font-size:11px;vertical-align:super}
+  .answer .li{display:flex;gap:8px;margin:3px 0}
+  .answer .li .b{color:var(--teal)}
+  .disc{color:var(--mut);font-style:italic;font-size:12.5px;border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+
+  .sources{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .sources .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin-bottom:8px}
+  .src{display:flex;gap:9px;font-size:12px;padding:4px 6px;border-radius:7px;color:var(--mut)}
+  .src .n{font-family:var(--mono);color:var(--teal)}
+
+  .gate{margin-top:14px;border:1px solid var(--line2);border-left:3px solid var(--teal);
+    border-radius:10px;padding:13px 15px;background:rgba(45,212,191,.05)}
+  .gate .h{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+  .gate .pill{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--teal);
+    background:rgba(45,212,191,.12);border-radius:99px;padding:2px 9px}
+  .gate p{font-size:12.5px;color:var(--mut);margin:4px 0 12px}
+  .gbtns{display:flex;gap:8px;flex-wrap:wrap}
+  .gbtns button{border-radius:99px;padding:8px 22px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;border:none}
+  .allow{background:var(--teal);color:#04201c}
+  .allow:hover{background:#43e3cf}
+  .reject{background:transparent;color:var(--coral);border:1px solid rgba(240,133,155,.5)!important}
+  .reject:hover{background:rgba(240,133,155,.08)}
+  .gate input{flex:1;min-width:200px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+    color:var(--txt);padding:7px 11px;font-size:12.5px;font-family:inherit;outline:none}
+  .gate input:focus{border-color:var(--coral)}
+  .decided{margin-top:14px;font-size:13px;color:var(--mut);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .ok{color:var(--green)} .no{color:var(--coral)}
+
+  footer{display:flex;gap:10px;padding:14px 20px 18px;border-top:1px solid var(--line)}
+  footer input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--txt);
+    padding:12px 15px;font-size:14px;outline:none;font-family:inherit}
+  footer input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(45,212,191,.12)}
+  footer button{background:var(--teal);color:#04201c;border:none;border-radius:12px;padding:0 22px;font-weight:700;cursor:pointer;font-size:14px}
+  footer button:disabled{opacity:.5;cursor:not-allowed}
+  .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(45,212,191,.3);border-top-color:var(--teal);
+    border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <span class="logo">◇</span>
+      <div>
+        <div class="title">ALPHA Advisor</div>
+        <div class="subtitle">Multi-agent wealth-advisory copilot · human-in-the-loop</div>
+      </div>
+    </div>
+    <span class="badge" id="badge">…</span>
+  </header>
+
+  <main class="stream" id="stream">
+    <div class="empty" id="empty">
+      <h1>Prepare a <span>client portfolio review</span>.</h1>
+      <p>The agent plans, retrieves from documents and a knowledge graph, runs compliance,
+         and drafts a cited briefing — then pauses for your approval.</p>
+      <div class="suggest" id="suggest"></div>
+      <p class="hint">All data is synthetic. Clients: Jane Harrington (C-1001), Marcus Bell (C-1002).</p>
+    </div>
+  </main>
+
+  <footer>
+    <input id="q" placeholder="Ask for a review…  e.g. Prepare a portfolio review for Jane Harrington" autocomplete="off">
+    <button id="send">Run</button>
+  </footer>
+</div>
+
+<script>
+const SUGGEST = [
+  "Prepare a portfolio review for Jane Harrington",
+  "Review C-1002's portfolio for concentration and suitability",
+  "Draft a review and email-ready summary for Marcus Bell",
+  "Can you guarantee 20% returns for Jane next year?",
+];
+const GROUP = {                       // node → color class for the trace
+  input_guard:"gov", compliance:"gov", output_guard:"gov", refuse:"gov",
+  retrieve:"rag", rewrite:"rag", approval:"hitl",
+};
+const $ = s => document.querySelector(s);
+const stream = $("#stream"), empty = $("#empty");
+let busy = false;
+
+(async () => {
+  try {
+    const h = await (await fetch("/api/health")).json();
+    const b = $("#badge");
+    b.textContent = h.provider === "mock" ? "● mock" : "● live · " + h.chat_model;
+    if (h.provider !== "mock") b.classList.add("live");
+  } catch { $("#badge").textContent = "● offline"; }
+})();
+
+const sg = $("#suggest");
+SUGGEST.forEach(s => {
+  const btn = document.createElement("button");
+  btn.textContent = s; btn.onclick = () => run(s); sg.appendChild(btn);
+});
+
+$("#send").onclick = () => run($("#q").value);
+$("#q").addEventListener("keydown", e => { if (e.key === "Enter") run($("#q").value); });
+
+function esc(t){ const d=document.createElement("div"); d.textContent=t; return d.innerHTML; }
+
+// minimal markdown: ## h3, **bold**, - bullets, [n] citations
+function renderBriefing(text){
+  const wrap = document.createElement("div"); wrap.className = "answer";
+  text.split("\n").forEach(line => {
+    if (!line.trim()){ wrap.appendChild(document.createElement("br")); return; }
+    let el;
+    if (line.startsWith("## ") || line.startsWith("# ")){
+      el = document.createElement("h3"); el.innerHTML = inline(line.replace(/^#+ /,""));
+    } else if (/^\s*[-*]\s+/.test(line)){
+      el = document.createElement("div"); el.className = "li";
+      el.innerHTML = '<span class="b">•</span><span>'+inline(line.replace(/^\s*[-*]\s+/,""))+'</span>';
+    } else if (line.startsWith("---")){
+      return;
+    } else { el = document.createElement("div"); el.innerHTML = inline(line); }
+    wrap.appendChild(el);
+  });
+  return wrap;
+}
+function inline(s){
+  s = esc(s);
+  s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/(^|\s)_([^_]+)_(?=\s|$|\.)/g, '$1<em>$2</em>');   // _italic_
+  s = s.replace(/\[(\d+(?:,\s*\d+)*)\]/g, '<span class="cite">[$1]</span>');
+  return s;
+}
+
+function traceLabel(step){
+  const node = step.node || "?";
+  const rest = Object.entries(step).filter(([k])=>k!=="node")
+    .map(([k,v]) => `${k}=${typeof v==="object"?JSON.stringify(v):v}`).join("  ");
+  return { node, rest };
+}
+
+async function run(text){
+  const q = (text||"").trim();
+  if (!q || busy) return;
+  busy = true; $("#send").disabled = true; $("#q").value = ""; empty.style.display = "none";
+
+  add("user", `<div class="bubble">${esc(q)}</div>`);
+  const card = add("assistant", `<div class="card"><div class="loading"><span class="spin"></span>Agent working…</div></div>`).querySelector(".card");
+  scroll();
+
+  let data;
+  try {
+    data = await (await fetch("/api/review", {
+      method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({request:q})
+    })).json();
+  } catch(e){ card.innerHTML = `<div class="no">⚠️ ${esc(String(e))} — is the server running?</div>`; busy=false; $("#send").disabled=false; return; }
+
+  card.innerHTML = "";
+  // trace (staggered)
+  if (data.trace?.length){
+    const t = document.createElement("div"); t.className = "trace";
+    data.trace.forEach((step, i) => {
+      const {node, rest} = traceLabel(step);
+      const row = document.createElement("div"); row.className = "tstep"; row.style.animationDelay = (i*70)+"ms";
+      row.innerHTML = `<span class="nd ${GROUP[node]||""}">${node}</span><span class="meta">${esc(rest)}</span>`;
+      t.appendChild(row);
+    });
+    card.appendChild(t);
+  }
+  // compliance
+  if (data.compliance?.length){
+    const c = document.createElement("div"); c.className = "comp";
+    c.innerHTML = `<h4>Compliance — overall <span class="st ${data.compliance_status}">${(data.compliance_status||"").toUpperCase()}</span></h4>`;
+    data.compliance.forEach(f => {
+      const g = {pass:"✓",warn:"▲",fail:"✗"}[f.status]||"?";
+      const row = document.createElement("div"); row.className = "finding "+f.status;
+      row.innerHTML = `<span class="g">${g}</span><span class="chk">${f.check}</span><span>${esc(f.detail)}</span>`;
+      c.appendChild(row);
+    });
+    card.appendChild(c);
+  }
+  // draft
+  if (data.draft) card.appendChild(renderBriefing(data.draft));
+  // sources
+  if (data.citations?.length){
+    const s = document.createElement("div"); s.className = "sources";
+    s.innerHTML = '<div class="lbl">Sources</div>';
+    data.citations.forEach(ci => {
+      const row = document.createElement("div"); row.className = "src";
+      row.innerHTML = `<span class="n">${ci.marker}</span><span>${esc(ci.title)}</span>`;
+      s.appendChild(row);
+    });
+    card.appendChild(s);
+  }
+  // approval gate or completed
+  if (data.status === "awaiting_approval") gate(card, data.run_id);
+  else completed(card, data);
+  scroll(); busy=false; $("#send").disabled=false;
+}
+
+function gate(card, runId){
+  const g = document.createElement("div"); g.className = "gate";
+  g.innerHTML = `
+    <div class="h"><span class="pill">⏸ Advisor approval required</span></div>
+    <p>The agent has paused. Nothing is shared with the client until you approve.</p>
+    <div class="gbtns">
+      <button class="allow">Approve &amp; finalize</button>
+      <button class="reject">Reject</button>
+      <input placeholder="reason (optional, the agent learns from it)" style="display:none">
+    </div>`;
+  const allow = g.querySelector(".allow"), reject = g.querySelector(".reject"), note = g.querySelector("input");
+  let rejecting = false;
+  allow.onclick = () => decide(card, g, runId, "approved", "");
+  reject.onclick = () => {
+    if (!rejecting){ rejecting = true; note.style.display = "block"; reject.textContent = "Confirm reject"; note.focus(); }
+    else decide(card, g, runId, "rejected", note.value.trim());
+  };
+  card.appendChild(g);
+}
+
+async function decide(card, gateEl, runId, decision, noteVal){
+  gateEl.innerHTML = `<span class="spin"></span> Resuming run…`;
+  let res;
+  try {
+    res = await (await fetch(`/api/review/${runId}/decision`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({decision, note:noteVal})
+    })).json();
+  } catch(e){ gateEl.innerHTML = `<span class="no">⚠️ ${esc(String(e))}</span>`; return; }
+  gateEl.remove();
+  if (res.final && res.decision !== "rejected" && res.final !== card.querySelector(".answer")?.textContent){
+    // show finalized briefing if it differs (e.g. edited note appended)
+  }
+  completed(card, {status:"completed", decision:res.decision, final:res.final, audit_ok:res.audit_ok});
+  scroll();
+}
+
+function completed(card, data){
+  const d = document.createElement("div"); d.className = "decided";
+  const dec = data.decision || "completed";
+  const glyph = dec==="rejected" ? `<span class="no">✕ rejected</span>`
+    : dec==="approved"||dec==="edited" ? `<span class="ok">✓ ${dec}</span>` : "✓ done";
+  let extra = "";
+  if (data.audit_ok !== undefined)
+    extra = ` · audit chain <span class="${data.audit_ok?"ok":"no"}">${data.audit_ok?"verified ✓":"broken ✗"}</span>`;
+  if (dec==="rejected" && data.final) extra += ` · ${esc(data.final)}`;
+  d.innerHTML = `Advisor decision: ${glyph}${extra}`;
+  card.appendChild(d);
+}
+
+function add(role, html){
+  const row = document.createElement("div"); row.className = "row "+role; row.innerHTML = html;
+  stream.appendChild(row); return row;
+}
+function scroll(){ stream.scrollTo({top:stream.scrollHeight, behavior:"smooth"}); }
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+# One-click deploy to Render (free tier). A persistent web process — which is what a
+# stateful human-in-the-loop agent needs: the paused run lives in the checkpointer in the
+# same process that started it, so Approve/Reject resumes the real interrupt.
+#
+# Deploy: render.com → New → Blueprint → pick this repo. Render reads this file.
+services:
+  - type: web
+    name: alpha-advisor
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn alpha.api:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHONPATH
+        value: src
+      - key: ALPHA_PROVIDER
+        value: mock            # zero-key demo. Set to "azure" + the AZURE_* vars for the prod LLM.
+      - key: PYTHON_VERSION
+        value: "3.12"

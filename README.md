@@ -1,15 +1,25 @@
 # ALPHA Advisor
 
 A multi-agent **wealth-advisory copilot** that prepares a client portfolio review under
-human supervision — built as a showcase for the **Agentic AI / Agentic RAG Engineer**
-role on the ALPHA Wealth AI Platform.
+human supervision — agentic RAG over documents **and** a knowledge graph, with governance,
+a real human-in-the-loop approval gate, and a tamper-evident audit trail. Built on
+**LangGraph**.
+
+> **▶ Live demo:** _add your Render URL here after deploying (see "Deploy" below)_ ·
+> **Study guide:** [`docs/study-guide.html`](docs/study-guide.html) ·
+> **Architecture:** [`docs/architecture.md`](docs/architecture.md)
+
+![ALPHA Advisor — agent trace, compliance, cited briefing](docs/img/ui-trace.png)
 
 An advisor asks for a review; the system plans the work, retrieves from policy documents
 **and** a portfolio knowledge graph, calls a market-data tool, runs compliance checks,
 drafts a **cited** briefing, then **pauses for advisor approval** before finalizing —
-logging every step to a tamper-evident audit trail.
+logging every step. Every line of the job posting maps to a working feature
+→ [`docs/architecture.md`](docs/architecture.md).
 
-Every line of the job posting maps to a working feature → [`docs/architecture.md`](docs/architecture.md).
+| Approval gate (human-in-the-loop) | Run it |
+|---|---|
+| ![approval gate](docs/img/ui-approval.png) | The agent pauses on a real LangGraph `interrupt()`; the advisor approves or rejects; the run resumes and finalizes — audit chain verified. |
 
 ## Run it (zero config, no keys)
 
@@ -31,10 +41,17 @@ Set `ALPHA_PROVIDER=ollama` to drive it with a local model (e.g. `qwen2.5-coder`
 python tests/test_smoke.py        # 6 end-to-end tests, mock mode
 ```
 
-## As a service (deployable surface)
+## The web UI + API
 
 ```bash
-PYTHONPATH=src uvicorn alpha.api:app --port 8200
+PYTHONPATH=src uvicorn alpha.api:app --port 8200      # then open http://localhost:8200
+```
+
+A single-page UI (served by the API itself) shows the live agent trace, the compliance
+findings, the cited briefing, and an **Approve / Reject** gate that drives the real
+human-in-the-loop interrupt. The JSON API underneath:
+
+```bash
 curl -s -X POST localhost:8200/api/review -H "Content-Type: application/json" \
      -d '{"request":"review Jane Harrington"}'                       # → run_id + briefing
 curl -s -X POST localhost:8200/api/review/run-1/decision -H "Content-Type: application/json" \
@@ -42,9 +59,22 @@ curl -s -X POST localhost:8200/api/review/run-1/decision -H "Content-Type: appli
 ```
 
 The graph is stateless; paused runs live in the checkpointer (`InMemorySaver` locally,
-Postgres in prod), so any replica can resume any run — see
-[`docs/deployment.md`](docs/deployment.md) for Azure Container Apps, OpenTelemetry tracing,
-and the Neo4j / Postgres / Azure AI Search swaps. Turn on per-node tracing with `ALPHA_TRACING=1`.
+Postgres in prod), so any replica can resume any run.
+
+## Deploy (free, shareable)
+
+This is a stateful agent (the approval gate pauses a real run), so it wants a **persistent
+process** — [`render.yaml`](render.yaml) defines a free Render web service:
+
+1. Push this repo to GitHub (done if you're reading it there).
+2. [render.com](https://render.com) → **New → Blueprint** → pick this repo → Render reads
+   `render.yaml` and deploys. You get a URL like `https://alpha-advisor.onrender.com`.
+3. (optional) Set the repo variable `DEPLOY_URL` to that URL — the included GitHub Action
+   pings it every 14 min so the free instance never cold-starts for a recruiter.
+
+For the **Azure** production path (Container Apps + Azure OpenAI + Postgres checkpointer +
+Neo4j + OpenTelemetry → Azure Monitor) see [`docs/deployment.md`](docs/deployment.md).
+Turn on per-node tracing anywhere with `ALPHA_TRACING=1`.
 
 ## What you'll see
 

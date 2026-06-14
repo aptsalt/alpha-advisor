@@ -1,0 +1,18 @@
+# Keeps the free-tier Render deploy warm so a recruiter clicking the link never hits a
+# ~50s cold start. Pings the health endpoint every 14 minutes (free tier sleeps after 15).
+# Set the repo variable DEPLOY_URL (Settings → Secrets and variables → Actions → Variables)
+# to your Render URL, e.g. https://alpha-advisor.onrender.com
+name: keep-warm
+on:
+  schedule:
+    - cron: "*/14 * * * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health
+        run: |
+          URL="${{ vars.DEPLOY_URL }}"
+          if [ -z "$URL" ]; then echo "DEPLOY_URL not set; skipping."; exit 0; fi
+          curl -fsS --max-time 60 "$URL/api/health" && echo " — warm ✓"
