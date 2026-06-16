@@ -9,7 +9,9 @@ you can run the exact same graph fully on-prem.
 from __future__ import annotations
 
 import hashlib
+import json
 import re
+from typing import Callable
 
 import httpx
 import numpy as np
@@ -29,6 +31,24 @@ def chat(system: str, user: str, *, fast: bool = False,
         deployment = config.AZURE_FAST_DEPLOYMENT if fast else config.AZURE_CHAT_DEPLOYMENT
         return _azure_chat(deployment, system, user, temperature, max_tokens)
     return _mock_chat(system, user)
+
+
+def chat_stream(system: str, user: str, on_token: Callable[[str], None], *,
+                fast: bool = False, temperature: float = 0.2, max_tokens: int = 700) -> str:
+    """Like chat(), but invokes on_token(chunk) as text arrives and returns the full string.
+    Ollama streams natively; mock/azure emit the completed text in word chunks so the UI
+    still types out live regardless of provider."""
+    if config.PROVIDER == "ollama":
+        model = config.OLLAMA_FAST_MODEL if fast else config.OLLAMA_CHAT_MODEL
+        return _ollama_chat_stream(model, system, user, on_token, temperature, max_tokens)
+    if config.PROVIDER == "azure":
+        deployment = config.AZURE_FAST_DEPLOYMENT if fast else config.AZURE_CHAT_DEPLOYMENT
+        text = _azure_chat(deployment, system, user, temperature, max_tokens)
+    else:
+        text = _mock_chat(system, user)
+    for tok in re.findall(r"\S+\s*", text):
+        on_token(tok)
+    return text
 
 
 def embed(texts: list[str]) -> np.ndarray:
@@ -79,6 +99,20 @@ def _mock_chat(system: str, user: str) -> str:
         # Broaden: add domain synonyms so the retry surfaces different docs.
         return f"{base} investment policy suitability allocation holdings risk"
 
+    if task == "judge_ground":
+        # Mock briefings cite their evidence, so groundedness is high; nudge by citation density.
+        cites = len(re.findall(r"\[\d+", user))
+        score = 0.9 + min(0.09, cites * 0.005)
+        return f'{{"score": {score:.2f}, "unsupported": []}}'
+
+    if task == "judge_suit":
+        # Did the briefing mention each flagged check? (deterministic keyword check)
+        checks = re.findall(r"- (suitability|restricted_list|concentration):", user)
+        briefing = user.split("BRIEFING:", 1)[-1].lower()
+        missed = [c for c in checks if c.split("_")[0] not in briefing]
+        score = 1.0 - (len(missed) / len(checks) if checks else 0)
+        return f'{{"score": {score:.2f}, "missed": {missed!r}}}'.replace("'", '"')
+
     if task == "draft_briefing":
         return _mock_briefing(user)
 
@@ -118,6 +152,29 @@ def _ollama_chat(model: str, system: str, user: str, temperature: float, max_tok
     )
     r.raise_for_status()
     return r.json()["message"]["content"].strip()
+
+
+def _ollama_chat_stream(model, system, user, on_token, temperature, max_tokens) -> str:
+    acc = []
+    with httpx.stream(
+        "POST", f"{config.OLLAMA_HOST}/api/chat",
+        json={"model": model,
+              "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
+              "stream": True, "options": {"temperature": temperature, "num_predict": max_tokens}},
+        timeout=180.0,
+    ) as r:
+        r.raise_for_status()
+        for line in r.iter_lines():
+            if not line:
+                continue
+            obj = json.loads(line)
+            chunk = obj.get("message", {}).get("content", "")
+            if chunk:
+                acc.append(chunk)
+                on_token(chunk)
+            if obj.get("done"):
+                break
+    return "".join(acc)
 
 
 def _ollama_embed(texts: list[str]) -> np.ndarray:

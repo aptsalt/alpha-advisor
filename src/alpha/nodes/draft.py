@@ -44,10 +44,43 @@ def draft_node(state: AdvisorState) -> dict:
                               "title": f"Compliance finding — {f['check']}",
                               "snippet": f["detail"][:160]})
 
+    # Proposed rebalancing trades become cited evidence too — so the briefing can
+    # recommend specific, computed actions, not vague advice.
+    plan = state.get("rebalance") or {}
+    for t in plan.get("trades", []):
+        i = len(citations) + 1
+        line = (f"{t['action']} {t['security']} ({t['delta']:+.0%}) — {t['reason']}")
+        evidence_lines.append(f"[{i}] Proposed trade: {line}")
+        citations.append({"marker": f"[{i}]", "source_id": "advice:rebalance",
+                          "title": f"Proposed trade — {t['action']} {t['security']}",
+                          "snippet": line[:160]})
+    if plan.get("trades"):
+        evidence_lines.append(f"After these trades the largest single issuer would be "
+                              f"{plan['max_issuer_after']:.0%} "
+                              f"({'within' if plan['compliant_after'] else 'still above'} the policy limit).")
+
     client_name = _client_name(state.get("client_id", ""))
+    rebal_hint = (" If proposed trades are present, include a short 'Recommended actions' "
+                  "section listing them." if plan.get("trades") else "")
     user = (f"CLIENT: {client_name}\nREQUEST: {state.get('safe_request','')}\n\n"
             "EVIDENCE:\n" + "\n".join(evidence_lines))
-    draft = llm.chat(_SYS, user, max_tokens=600)
+
+    # Stream the briefing token-by-token to the UI via LangGraph's custom stream writer.
+    # Outside a streaming run (CLI invoke, tests) the writer is a harmless no-op.
+    try:
+        from langgraph.config import get_stream_writer
+        writer = get_stream_writer()
+    except Exception:
+        writer = None
+
+    def on_token(t: str) -> None:
+        if writer:
+            try:
+                writer({"type": "draft_token", "text": t})
+            except Exception:
+                pass
+
+    draft = llm.chat_stream(_SYS + rebal_hint, user, on_token, max_tokens=600)
 
     audit.log("draft", {"n_citations": len(citations), "chars": len(draft)},
               run_id=state.get("client_id", ""))

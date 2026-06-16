@@ -31,6 +31,7 @@ from .nodes.guardrails import (
 from .nodes.retrieve import retrieve_node, rewrite_node, should_retry
 from .nodes.market import market_node
 from .nodes.compliance import compliance_node
+from .nodes.rebalance import rebalance_node
 from .nodes.draft import draft_node
 from .nodes.approval import approval_node, route_after_approval
 from .nodes.finalize import finalize_node, discard_node
@@ -52,6 +53,7 @@ def build_graph(checkpointer=None):
     node("rewrite", rewrite_node)
     node("market", market_node)
     node("compliance", compliance_node)
+    node("rebalance", rebalance_node)
     node("draft", draft_node)
     node("output_guard", output_guard_node)
     node("approval", approval_node)
@@ -73,7 +75,8 @@ def build_graph(checkpointer=None):
     g.add_edge("rewrite", "retrieve")
 
     g.add_edge("market", "compliance")
-    g.add_edge("compliance", "draft")
+    g.add_edge("compliance", "rebalance")   # findings → proposed trades
+    g.add_edge("rebalance", "draft")
     g.add_edge("draft", "output_guard")
     g.add_edge("output_guard", "approval")
 

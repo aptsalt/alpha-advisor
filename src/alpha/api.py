@@ -99,26 +99,27 @@ def review_stream(req: ReviewRequest) -> StreamingResponse:
     def gen():
         yield _sse({"type": "run", "run_id": run_id})
         try:
-            for chunk in _graph.stream({"request": req.request}, thread, stream_mode="updates"):
+            # "updates" = per-node completion; "custom" = the draft node's live tokens.
+            for mode, chunk in _graph.stream({"request": req.request}, thread,
+                                             stream_mode=["updates", "custom"]):
+                if mode == "custom":
+                    if isinstance(chunk, dict) and chunk.get("type") == "draft_token":
+                        yield _sse(chunk)
+                    continue
                 if "__interrupt__" in chunk:
-                    continue  # the pause; we surface the full payload from state below
+                    continue  # the pause; full payload surfaced from state below
                 for node, update in chunk.items():
                     if not isinstance(update, dict):
                         continue
-                    yield _sse({
-                        "type": "node", "node": node,
-                        "trace": update.get("trace", []),
-                        "compliance": update.get("compliance"),
-                        "compliance_status": update.get("compliance_status"),
-                        "draft": update.get("draft"),
-                        "citations": update.get("citations"),
-                    })
+                    yield _sse({"type": "node", "node": node, "trace": update.get("trace", [])})
             state = _state(run_id)
             snap = _graph.get_state(thread)
             if snap.next:  # paused at the approval interrupt
                 yield _sse({"type": "awaiting_approval", "run_id": run_id,
+                            "client_id": state.get("client_id", ""),
                             "compliance_status": state.get("compliance_status"),
                             "compliance": state.get("compliance", []),
+                            "rebalance": state.get("rebalance", {}),
                             "draft": state.get("draft", ""),
                             "citations": state.get("citations", [])})
             else:
@@ -148,3 +149,50 @@ def decide(run_id: str, body: Decision) -> dict:
             "decision": state.get("decision"),
             "final": state.get("final", ""),
             "audit_ok": audit.verify()}
+
+
+# ── Evaluation (LLM-as-judge on a finished run) ──────────────────────────────
+@app.post("/api/review/{run_id}/eval")
+def evaluate_run(run_id: str) -> dict:
+    """Score a run's briefing for citation coverage, groundedness, and suitability."""
+    from . import evaluate as _eval
+    state = _state(run_id)
+    briefing = state.get("draft", "")
+    if not briefing:
+        raise HTTPException(404, "no briefing for that run_id")
+    return _eval.evaluate(briefing, state.get("citations", []), state.get("compliance", []))
+
+
+# ── Knowledge graph (for the visualization panel) ────────────────────────────
+@app.get("/api/graph/{client_id}")
+def client_graph(client_id: str) -> dict:
+    from . import corpus
+    return corpus.knowledge_graph().subgraph(client_id)
+
+
+# ── Clients + portfolio dashboard scan ───────────────────────────────────────
+@app.get("/api/clients")
+def clients() -> list[dict]:
+    from .data import synth
+    return [{"client_id": c["client_id"], "name": c["name"], "risk": c["risk"]}
+            for c in synth.CLIENTS.values()]
+
+
+@app.get("/api/portfolio/scan")
+def portfolio_scan() -> list[dict]:
+    """Fast, LLM-free compliance scan across every client — the dashboard 'flagged for
+    review' queue. Pure graph queries, so it's instant even with many clients."""
+    from . import advice
+    from .data import synth
+    rows = []
+    for cid, c in synth.CLIENTS.items():
+        findings, status, ctx = advice.assess(cid)
+        top_issuer, top_w = next(iter(ctx["issuer_conc"].items()), ("none", 0.0))
+        rows.append({
+            "client_id": cid, "name": c["name"], "risk": c["risk"], "status": status,
+            "flags": [f["check"] for f in findings if f["status"] != "pass"],
+            "top_issuer": top_issuer, "top_issuer_weight": round(top_w, 4),
+            "restricted": bool(ctx["restricted"]),
+        })
+    order = {"fail": 0, "warn": 1, "pass": 2}
+    return sorted(rows, key=lambda r: order[r["status"]])

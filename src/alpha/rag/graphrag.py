@@ -121,6 +121,45 @@ class KnowledgeGraph:
             })
         return facts
 
+    def subgraph(self, client_id: str) -> dict:
+        """Export the client's neighbourhood as {nodes, edges} for visualization.
+        Flags the restricted holding and over-concentrated issuer so the UI can colour them."""
+        from .. import config
+        nodes: dict[str, dict] = {}
+        edges: list[dict] = []
+
+        def add_node(nid, kind, label, **flags):
+            if nid not in nodes:
+                nodes[nid] = {"id": nid, "kind": kind, "label": label, **flags}
+
+        add_node(client_id, "Client", self.g.nodes[client_id].get("name", client_id))
+        rp = self._first_neighbor(client_id, "HAS_PROFILE")
+        if rp:
+            add_node(rp, "RiskProfile", self.g.nodes[rp].get("name", "Profile"))
+            edges.append({"source": client_id, "target": rp, "rel": "HAS_PROFILE"})
+
+        issuer_conc = self.issuer_concentration(client_id)
+        restricted_names = {h["security"] for h in self.restricted_hits(client_id)}
+        over = {iss for iss, w in issuer_conc.items() if w > config.CONCENTRATION_LIMIT}
+
+        for h in self.holdings(client_id):
+            sid = h["security_id"]
+            add_node(sid, "Security", h["security"], restricted=h["security"] in restricted_names)
+            edges.append({"source": client_id, "target": sid, "rel": "HOLDS", "weight": h["weight"]})
+            iss = h["issuer_id"]
+            add_node(iss, "Issuer", h["issuer"], over_limit=h["issuer"] in over)
+            edges.append({"source": sid, "target": iss, "rel": "ISSUED_BY"})
+            sec = f"SECTOR:{h['sector']}"
+            add_node(sec, "Sector", h["sector"])
+            edges.append({"source": sid, "target": sec, "rel": "IN_SECTOR"})
+            pol = self._first_neighbor(sid, "RESTRICTED_BY")
+            if pol:
+                add_node(pol, "Policy", self.g.nodes[pol].get("name", "Policy"))
+                edges.append({"source": sid, "target": pol, "rel": "RESTRICTED_BY"})
+
+        return {"nodes": list(nodes.values()), "edges": edges,
+                "issuer_concentration": {k: round(v, 4) for k, v in issuer_conc.items()}}
+
     # ── internals ─────────────────────────────────────────────────────────────
     def _first_neighbor(self, node: str | None, rel: str) -> str | None:
         if node is None or node not in self.g:

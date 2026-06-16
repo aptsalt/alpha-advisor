@@ -55,6 +55,12 @@ class AdvisorState(TypedDict, total=False):
     compliance: list[ComplianceFinding]
     compliance_status: Literal["pass", "warn", "fail"]
 
+    # ── Rebalance (proposed trades to bring the book back within policy) ───────
+    rebalance: dict[str, Any]
+
+    # ── Evaluation (LLM-as-judge scores on the finished briefing) ─────────────
+    evaluation: dict[str, Any]
+
     # ── Drafting ──────────────────────────────────────────────────────────────
     draft: str
     citations: list[Citation]

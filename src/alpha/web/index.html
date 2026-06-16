@@ -12,123 +12,159 @@
     --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Consolas,monospace;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:radial-gradient(900px 420px at 78% -12%,rgba(45,212,191,.10),transparent 60%) ,var(--bg);
+  body{margin:0;background:radial-gradient(900px 420px at 78% -12%,rgba(45,212,191,.10),transparent 60%),var(--bg);
     color:var(--txt);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
     height:100vh;display:flex;flex-direction:column}
   code,.mono{font-family:var(--mono)}
-  .app{max-width:900px;margin:0 auto;width:100%;display:flex;flex-direction:column;height:100vh}
+  .app{max-width:920px;margin:0 auto;width:100%;display:flex;flex-direction:column;height:100vh}
 
-  header{display:flex;align-items:center;justify-content:space-between;gap:12px;
-    padding:14px 20px;border-bottom:1px solid var(--line)}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 20px;border-bottom:1px solid var(--line)}
   .brand{display:flex;align-items:center;gap:11px}
   .logo{color:var(--teal);font-size:20px}
-  .title{font-weight:800;letter-spacing:.2px}
+  .title{font-weight:800}
   .subtitle{font-size:11.5px;color:var(--mut)}
+  .right{display:flex;align-items:center;gap:14px}
+  nav.tabs{display:flex;gap:4px}
+  nav.tabs button{background:none;border:1px solid transparent;color:var(--mut);font-family:inherit;font-size:13px;
+    padding:6px 13px;border-radius:8px;cursor:pointer}
+  nav.tabs button.on{color:var(--teal);background:var(--panel);border-color:var(--line)}
   .badge{font-size:11px;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:4px 11px;font-family:var(--mono)}
   .badge.live{color:var(--green);border-color:rgba(94,209,143,.4)}
 
-  .stream{flex:1;overflow-y:auto;padding:22px 20px 8px}
+  .view{flex:1;overflow-y:auto;padding:22px 20px 8px;display:none}
+  .view.on{display:block}
   .empty{max-width:640px;margin:6vh auto 0;text-align:center}
-  .empty h1{font-size:29px;line-height:1.2;margin:0 0 10px}
-  .empty h1 span{color:var(--teal)}
+  .empty h1{font-size:29px;line-height:1.2;margin:0 0 10px}.empty h1 span{color:var(--teal)}
   .empty p{color:var(--mut);margin-bottom:22px}
   .suggest{display:grid;gap:10px;text-align:left}
-  .suggest button{background:var(--panel);border:1px solid var(--line);color:var(--txt);
-    border-radius:12px;padding:13px 15px;font-size:13.5px;cursor:pointer;font-family:inherit;transition:.15s}
+  .suggest button{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:12px;
+    padding:13px 15px;font-size:13.5px;cursor:pointer;font-family:inherit;transition:.15s}
   .suggest button:hover{border-color:var(--teal);transform:translateY(-1px)}
   .hint{font-size:11.5px;color:var(--dim);margin-top:22px}
 
-  .row{display:flex;margin-bottom:18px}
-  .row.user{justify-content:flex-end}
-  .bubble{background:linear-gradient(135deg,#155e54,#0e463e);color:#eafffb;padding:10px 14px;
-    border-radius:14px 14px 4px 14px;max-width:78%;font-size:14px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
-    max-width:96%;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+  .row{display:flex;margin-bottom:18px}.row.user{justify-content:flex-end}
+  .bubble{background:linear-gradient(135deg,#155e54,#0e463e);color:#eafffb;padding:10px 14px;border-radius:14px 14px 4px 14px;max-width:78%;font-size:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;max-width:96%;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.25)}
 
   .trace{border-left:2px solid var(--line);padding:2px 0 6px 12px;margin-bottom:14px;display:flex;flex-direction:column;gap:5px}
-  .tstep{font-size:12px;color:var(--teal);display:flex;gap:8px;opacity:0;transform:translateY(3px);
-    animation:rise .32s ease forwards}
-  @keyframes rise{to{opacity:1;transform:none}}
+  .tstep{font-size:12px;color:var(--teal);display:flex;gap:8px;opacity:0;transform:translateY(3px);animation:rise .3s ease forwards}
   .tstep .nd{font-family:var(--mono);color:var(--blue);min-width:96px}
   .tstep.working{color:var(--mut);animation:none;opacity:.85}
-  .tstep .gov{color:var(--gold)} .tstep .rag{color:var(--blue)} .tstep .hitl{color:var(--teal)}
-  .tstep .meta{color:var(--mut)}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .tstep .gov{color:var(--gold)}.tstep .rag{color:var(--blue)}.tstep .hitl{color:var(--teal)}.tstep .meta{color:var(--mut)}
 
   .comp{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:14px;background:var(--panel2)}
   .comp h4{margin:0 0 9px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
-  .comp .st{font-weight:700}
-  .comp .st.pass{color:var(--green)} .comp .st.warn{color:var(--gold)} .comp .st.fail{color:var(--coral)}
-  .finding{display:flex;gap:9px;font-size:12.5px;padding:4px 0}
-  .finding .g{width:16px;text-align:center}
-  .finding.pass .g{color:var(--green)} .finding.warn .g{color:var(--gold)} .finding.fail .g{color:var(--coral)}
+  .st{font-weight:700}.st.pass{color:var(--green)}.st.warn{color:var(--gold)}.st.fail{color:var(--coral)}
+  .finding{display:flex;gap:9px;font-size:12.5px;padding:4px 0}.finding .g{width:16px;text-align:center}
+  .finding.pass .g{color:var(--green)}.finding.warn .g{color:var(--gold)}.finding.fail .g{color:var(--coral)}
   .finding .chk{font-family:var(--mono);color:var(--mut);min-width:104px}
 
+  .rebal{border:1px solid var(--line2);border-left:3px solid var(--gold);border-radius:10px;padding:12px 14px;margin-bottom:14px;background:rgba(240,180,41,.04)}
+  .rebal h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--gold)}
+  .trade{display:flex;gap:10px;font-size:12.5px;padding:4px 0;align-items:baseline}
+  .trade .act{font-family:var(--mono);font-weight:700;min-width:46px}
+  .trade .act.SELL,.trade .act.TRIM{color:var(--coral)}.trade .act.BUY{color:var(--green)}
+  .trade .sec{min-width:170px}.trade .rsn{color:var(--mut);font-size:11.5px}
+  .rebal .after{font-size:12px;color:var(--mut);margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+
   .answer{font-size:14.5px;white-space:pre-wrap;line-height:1.65}
-  .answer h3{font-size:16px;margin:2px 0 8px}
-  .answer strong{color:#fff}
+  .answer h3{font-size:16px;margin:2px 0 8px}.answer strong{color:#fff}.answer em{color:var(--mut)}
   .answer .cite{color:var(--teal);font-weight:700;font-size:11px;vertical-align:super}
-  .answer .li{display:flex;gap:8px;margin:3px 0}
-  .answer .li .b{color:var(--teal)}
-  .disc{color:var(--mut);font-style:italic;font-size:12.5px;border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+  .answer .li{display:flex;gap:8px;margin:3px 0}.answer .li .b{color:var(--teal)}
+  .caret{display:inline-block;width:7px;height:15px;background:var(--teal);vertical-align:-2px;animation:blink 1s steps(2) infinite}
+  @keyframes blink{50%{opacity:0}}
 
   .sources{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
   .sources .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin-bottom:8px}
-  .src{display:flex;gap:9px;font-size:12px;padding:4px 6px;border-radius:7px;color:var(--mut)}
-  .src .n{font-family:var(--mono);color:var(--teal)}
+  .src{display:flex;gap:9px;font-size:12px;padding:4px 6px;border-radius:7px;color:var(--mut)}.src .n{font-family:var(--mono);color:var(--teal)}
 
-  .gate{margin-top:14px;border:1px solid var(--line2);border-left:3px solid var(--teal);
-    border-radius:10px;padding:13px 15px;background:rgba(45,212,191,.05)}
+  .toolbar{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .tbtn{background:none;border:1px solid var(--line);color:var(--mut);font-size:11.5px;padding:5px 11px;border-radius:8px;cursor:pointer;font-family:inherit}
+  .tbtn:hover{color:var(--txt);border-color:var(--line2)}
+
+  .eval{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--panel2)}
+  .eval h4{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+  .meter{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:12.5px}
+  .meter .lab{min-width:140px;color:var(--mut)}
+  .bar{flex:1;height:7px;border-radius:99px;background:var(--line);overflow:hidden}
+  .bar > i{display:block;height:100%;border-radius:99px}
+  .meter .val{font-family:var(--mono);min-width:42px;text-align:right}
+  .eval .note{font-size:11.5px;color:var(--coral);margin-top:6px}
+
+  svg.kg{width:100%;height:auto;background:var(--panel2);border:1px solid var(--line);border-radius:10px;margin-top:12px}
+  .kg text{font-family:var(--mono)}
+
+  .gate{margin-top:14px;border:1px solid var(--line2);border-left:3px solid var(--teal);border-radius:10px;padding:13px 15px;background:rgba(45,212,191,.05)}
   .gate .h{display:flex;align-items:center;gap:9px;margin-bottom:6px}
-  .gate .pill{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--teal);
-    background:rgba(45,212,191,.12);border-radius:99px;padding:2px 9px}
+  .gate .pill{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--teal);background:rgba(45,212,191,.12);border-radius:99px;padding:2px 9px}
   .gate p{font-size:12.5px;color:var(--mut);margin:4px 0 12px}
   .gbtns{display:flex;gap:8px;flex-wrap:wrap}
   .gbtns button{border-radius:99px;padding:8px 22px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;border:none}
-  .allow{background:var(--teal);color:#04201c}
-  .allow:hover{background:#43e3cf}
-  .reject{background:transparent;color:var(--coral);border:1px solid rgba(240,133,155,.5)!important}
-  .reject:hover{background:rgba(240,133,155,.08)}
-  .gate input{flex:1;min-width:200px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;
-    color:var(--txt);padding:7px 11px;font-size:12.5px;font-family:inherit;outline:none}
-  .gate input:focus{border-color:var(--coral)}
+  .allow{background:var(--teal);color:#04201c}.allow:hover{background:#43e3cf}
+  .reject{background:transparent;color:var(--coral);border:1px solid rgba(240,133,155,.5)!important}.reject:hover{background:rgba(240,133,155,.08)}
+  .gate input{flex:1;min-width:200px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:7px 11px;font-size:12.5px;font-family:inherit;outline:none}
   .decided{margin-top:14px;font-size:13px;color:var(--mut);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .ok{color:var(--green)} .no{color:var(--coral)}
+  .ok{color:var(--green)}.no{color:var(--coral)}
+  .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(45,212,191,.3);border-top-color:var(--teal);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* dashboard */
+  .dash h2{font-size:18px;margin:4px 0 4px}.dash .sub{color:var(--mut);font-size:13px;margin-bottom:18px}
+  table.clients{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.clients th{text-align:left;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid var(--line)}
+  table.clients td{padding:11px 10px;border-bottom:1px solid var(--line)}
+  table.clients tr{cursor:pointer}table.clients tbody tr:hover{background:var(--panel)}
+  .sbadge{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px}
+  .sbadge.pass{color:var(--green);background:rgba(94,209,143,.12)}
+  .sbadge.warn{color:var(--gold);background:rgba(240,180,41,.12)}
+  .sbadge.fail{color:var(--coral);background:rgba(240,133,155,.12)}
+  .flag{font-family:var(--mono);font-size:11px;color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:1px 7px;margin-right:5px}
 
   footer{display:flex;gap:10px;padding:14px 20px 18px;border-top:1px solid var(--line)}
-  footer input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--txt);
-    padding:12px 15px;font-size:14px;outline:none;font-family:inherit}
+  footer.hidden{display:none}
+  footer input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--txt);padding:12px 15px;font-size:14px;outline:none;font-family:inherit}
   footer input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(45,212,191,.12)}
   footer button{background:var(--teal);color:#04201c;border:none;border-radius:12px;padding:0 22px;font-weight:700;cursor:pointer;font-size:14px}
   footer button:disabled{opacity:.5;cursor:not-allowed}
-  .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(45,212,191,.3);border-top-color:var(--teal);
-    border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
-  @keyframes sp{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <div class="brand">
-      <span class="logo">◇</span>
-      <div>
-        <div class="title">ALPHA Advisor</div>
-        <div class="subtitle">Multi-agent wealth-advisory copilot · human-in-the-loop</div>
-      </div>
+    <div class="brand"><span class="logo">◇</span>
+      <div><div class="title">ALPHA Advisor</div>
+        <div class="subtitle">Multi-agent wealth-advisory copilot · human-in-the-loop</div></div>
     </div>
-    <span class="badge" id="badge">…</span>
+    <div class="right">
+      <nav class="tabs">
+        <button id="tab-review" class="on" onclick="showView('review')">Review</button>
+        <button id="tab-portfolio" onclick="showView('portfolio')">Portfolio</button>
+      </nav>
+      <span class="badge" id="badge">…</span>
+    </div>
   </header>
 
-  <main class="stream" id="stream">
+  <main class="view on" id="view-review">
     <div class="empty" id="empty">
       <h1>Prepare a <span>client portfolio review</span>.</h1>
-      <p>The agent plans, retrieves from documents and a knowledge graph, runs compliance,
-         and drafts a cited briefing — then pauses for your approval.</p>
+      <p>The agent plans, retrieves from documents and a knowledge graph, runs compliance, proposes
+         rebalancing trades, and drafts a cited briefing — then pauses for your approval.</p>
       <div class="suggest" id="suggest"></div>
       <p class="hint">All data is synthetic. Clients: Jane Harrington (C-1001), Marcus Bell (C-1002).</p>
     </div>
   </main>
 
-  <footer>
+  <main class="view dash" id="view-portfolio">
+    <h2>Portfolio book — flagged for review</h2>
+    <p class="sub">A fast, LLM-free compliance scan across every client (pure graph queries). Click a
+       client to run the full agentic review.</p>
+    <table class="clients"><thead><tr>
+      <th>Client</th><th>Mandate</th><th>Status</th><th>Flags</th><th>Largest issuer</th>
+    </tr></thead><tbody id="clientrows"><tr><td colspan="5" class="mut">Loading…</td></tr></tbody></table>
+  </main>
+
+  <footer id="composer">
     <input id="q" placeholder="Ask for a review…  e.g. Prepare a portfolio review for Jane Harrington" autocomplete="off">
     <button id="send">Run</button>
   </footer>
@@ -141,217 +177,225 @@ const SUGGEST = [
   "Draft a review and email-ready summary for Marcus Bell",
   "Can you guarantee 20% returns for Jane next year?",
 ];
-const GROUP = {                       // node → color class for the trace
-  input_guard:"gov", compliance:"gov", output_guard:"gov", refuse:"gov",
-  retrieve:"rag", rewrite:"rag", approval:"hitl",
-};
-const $ = s => document.querySelector(s);
-const stream = $("#stream"), empty = $("#empty");
-let busy = false;
+const GROUP = {input_guard:"gov",compliance:"gov",output_guard:"gov",refuse:"gov",rebalance:"gov",retrieve:"rag",rewrite:"rag",approval:"hitl"};
+const $=s=>document.querySelector(s);
+const reviewView=$("#view-review"), empty=$("#empty");
+let busy=false;
 
-(async () => {
-  try {
-    const h = await (await fetch("/api/health")).json();
-    const b = $("#badge");
-    b.textContent = h.provider === "mock" ? "● mock" : "● live · " + h.chat_model;
-    if (h.provider !== "mock") b.classList.add("live");
-  } catch { $("#badge").textContent = "● offline"; }
-})();
+(async()=>{try{const h=await(await fetch("/api/health")).json();const b=$("#badge");
+  b.textContent=h.provider==="mock"?"● mock":"● live · "+h.chat_model;if(h.provider!=="mock")b.classList.add("live");}
+  catch{$("#badge").textContent="● offline";}})();
 
-const sg = $("#suggest");
-SUGGEST.forEach(s => {
-  const btn = document.createElement("button");
-  btn.textContent = s; btn.onclick = () => run(s); sg.appendChild(btn);
-});
+const sg=$("#suggest");SUGGEST.forEach(s=>{const b=document.createElement("button");b.textContent=s;b.onclick=()=>run(s);sg.appendChild(b);});
+$("#send").onclick=()=>run($("#q").value);
+$("#q").addEventListener("keydown",e=>{if(e.key==="Enter")run($("#q").value);});
 
-$("#send").onclick = () => run($("#q").value);
-$("#q").addEventListener("keydown", e => { if (e.key === "Enter") run($("#q").value); });
-
-function esc(t){ const d=document.createElement("div"); d.textContent=t; return d.innerHTML; }
-
-// minimal markdown: ## h3, **bold**, - bullets, [n] citations
-function renderBriefing(text){
-  const wrap = document.createElement("div"); wrap.className = "answer";
-  text.split("\n").forEach(line => {
-    if (!line.trim()){ wrap.appendChild(document.createElement("br")); return; }
-    let el;
-    if (line.startsWith("## ") || line.startsWith("# ")){
-      el = document.createElement("h3"); el.innerHTML = inline(line.replace(/^#+ /,""));
-    } else if (/^\s*[-*]\s+/.test(line)){
-      el = document.createElement("div"); el.className = "li";
-      el.innerHTML = '<span class="b">•</span><span>'+inline(line.replace(/^\s*[-*]\s+/,""))+'</span>';
-    } else if (line.startsWith("---")){
-      return;
-    } else { el = document.createElement("div"); el.innerHTML = inline(line); }
-    wrap.appendChild(el);
-  });
-  return wrap;
+function showView(v){
+  $("#view-review").classList.toggle("on",v==="review");
+  $("#view-portfolio").classList.toggle("on",v==="portfolio");
+  $("#tab-review").classList.toggle("on",v==="review");
+  $("#tab-portfolio").classList.toggle("on",v==="portfolio");
+  $("#composer").classList.toggle("hidden",v!=="review");
+  if(v==="portfolio") loadDashboard();
 }
-function inline(s){
-  s = esc(s);
-  s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  s = s.replace(/(^|\s)_([^_]+)_(?=\s|$|\.)/g, '$1<em>$2</em>');   // _italic_
-  s = s.replace(/\[(\d+(?:,\s*\d+)*)\]/g, '<span class="cite">[$1]</span>');
-  return s;
+function esc(t){const d=document.createElement("div");d.textContent=t;return d.innerHTML;}
+function inline(s){s=esc(s);s=s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+  s=s.replace(/(^|\s)_([^_]+)_(?=\s|$|\.)/g,'$1<em>$2</em>');
+  s=s.replace(/\[(\d+(?:,\s*\d+)*)\]/g,'<span class="cite">[$1]</span>');return s;}
+function renderBriefing(text){const w=document.createElement("div");w.className="answer";
+  text.split("\n").forEach(line=>{if(!line.trim()){w.appendChild(document.createElement("br"));return;}
+    let el;if(/^#{1,3}\s/.test(line)){el=document.createElement("h3");el.innerHTML=inline(line.replace(/^#+\s/,""));}
+    else if(/^\s*[-*]\s+/.test(line)){el=document.createElement("div");el.className="li";
+      el.innerHTML='<span class="b">•</span><span>'+inline(line.replace(/^\s*[-*]\s+/,""))+'</span>';}
+    else if(line.startsWith("---"))return;
+    else{el=document.createElement("div");el.innerHTML=inline(line);}w.appendChild(el);});return w;}
+function traceLabel(step){const node=step.node||"?";
+  const rest=Object.entries(step).filter(([k])=>k!=="node").map(([k,v])=>`${k}=${typeof v==="object"?JSON.stringify(v):v}`).join("  ");
+  return{node,rest};}
+
+async function readSSE(url,body,onEvent){
+  const res=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!res.body)throw new Error("no response stream");
+  const reader=res.body.getReader(),dec=new TextDecoder();let buf="";
+  while(true){const{value,done}=await reader.read();if(done)break;buf+=dec.decode(value,{stream:true});
+    let sep;while((sep=buf.indexOf("\n\n"))!==-1){const frame=buf.slice(0,sep);buf=buf.slice(sep+2);
+      for(const line of frame.split("\n"))if(line.startsWith("data:")){const j=line.slice(5).trim();if(j)try{onEvent(JSON.parse(j));}catch{}}}}
 }
 
-function traceLabel(step){
-  const node = step.node || "?";
-  const rest = Object.entries(step).filter(([k])=>k!=="node")
-    .map(([k,v]) => `${k}=${typeof v==="object"?JSON.stringify(v):v}`).join("  ");
-  return { node, rest };
+function renderCompliance(card,data){
+  if(!data.compliance?.length)return;
+  const c=document.createElement("div");c.className="comp";
+  c.innerHTML=`<h4>Compliance — overall <span class="st ${data.compliance_status}">${(data.compliance_status||"").toUpperCase()}</span></h4>`;
+  data.compliance.forEach(f=>{const g={pass:"✓",warn:"▲",fail:"✗"}[f.status]||"?";
+    const r=document.createElement("div");r.className="finding "+f.status;
+    r.innerHTML=`<span class="g">${g}</span><span class="chk">${f.check}</span><span>${esc(f.detail)}</span>`;c.appendChild(r);});
+  card.appendChild(c);
+}
+function renderRebalance(card,data){
+  const rb=data.rebalance||{};if(!rb.trades?.length)return;
+  const el=document.createElement("div");el.className="rebal";
+  el.innerHTML=`<h4>⇄ Recommended actions — proposed trades</h4>`;
+  rb.trades.forEach(t=>{const r=document.createElement("div");r.className="trade";
+    r.innerHTML=`<span class="act ${t.action}">${t.action}</span><span class="sec">${esc(t.security)}</span>`+
+      `<span class="act">${(t.delta*100).toFixed(0)}%</span><span class="rsn">${esc(t.reason)}</span>`;el.appendChild(r);});
+  const ok=rb.compliant_after;
+  el.insertAdjacentHTML("beforeend",`<div class="after">Projected largest single issuer: <b>${(rb.max_issuer_after*100).toFixed(0)}%</b> — `+
+    `<span class="${ok?'ok':'warn'}">${ok?'within the policy limit ✓':'still above limit'}</span></div>`);
+  card.appendChild(el);
+}
+function renderResult(card,data){
+  renderCompliance(card,data);renderRebalance(card,data);
+  const briefing=data.draft||data.final;if(briefing)card.appendChild(renderBriefing(briefing));
+  if(data.citations?.length){const s=document.createElement("div");s.className="sources";s.innerHTML='<div class="lbl">Sources</div>';
+    data.citations.forEach(ci=>{const r=document.createElement("div");r.className="src";
+      r.innerHTML=`<span class="n">${ci.marker}</span><span>${esc(ci.title)}</span>`;s.appendChild(r);});card.appendChild(s);}
 }
 
-// Hand-rolled SSE reader over fetch+POST (EventSource is GET-only). Dispatches each
-// typed event from /api/review/stream.
-async function readSSE(url, body, onEvent){
-  const res = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
-  if (!res.body) throw new Error("no response stream");
-  const reader = res.body.getReader(), dec = new TextDecoder();
-  let buf = "";
-  while (true){
-    const {value, done} = await reader.read();
-    if (done) break;
-    buf += dec.decode(value, {stream:true});
-    let sep;
-    while ((sep = buf.indexOf("\n\n")) !== -1){
-      const frame = buf.slice(0, sep); buf = buf.slice(sep+2);
-      for (const line of frame.split("\n"))
-        if (line.startsWith("data:")){
-          const j = line.slice(5).trim();
-          if (j) try { onEvent(JSON.parse(j)); } catch {}
-        }
-    }
-  }
-}
-
-function renderResult(card, data){
-  if (data.compliance?.length){
-    const c = document.createElement("div"); c.className = "comp";
-    c.innerHTML = `<h4>Compliance — overall <span class="st ${data.compliance_status}">${(data.compliance_status||"").toUpperCase()}</span></h4>`;
-    data.compliance.forEach(f => {
-      const g = {pass:"✓",warn:"▲",fail:"✗"}[f.status]||"?";
-      const row = document.createElement("div"); row.className = "finding "+f.status;
-      row.innerHTML = `<span class="g">${g}</span><span class="chk">${f.check}</span><span>${esc(f.detail)}</span>`;
-      c.appendChild(row);
-    });
-    card.appendChild(c);
-  }
-  const briefing = data.draft || data.final;
-  if (briefing) card.appendChild(renderBriefing(briefing));
-  if (data.citations?.length){
-    const s = document.createElement("div"); s.className = "sources";
-    s.innerHTML = '<div class="lbl">Sources</div>';
-    data.citations.forEach(ci => {
-      const row = document.createElement("div"); row.className = "src";
-      row.innerHTML = `<span class="n">${ci.marker}</span><span>${esc(ci.title)}</span>`;
-      s.appendChild(row);
-    });
-    card.appendChild(s);
-  }
-}
+function add(role,html){const row=document.createElement("div");row.className="row "+role;row.innerHTML=html;reviewView.appendChild(row);return row;}
+function scroll(){reviewView.scrollTo({top:reviewView.scrollHeight,behavior:"smooth"});}
 
 async function run(text){
-  const q = (text||"").trim();
-  if (!q || busy) return;
-  busy = true; $("#send").disabled = true; $("#q").value = ""; empty.style.display = "none";
-
-  add("user", `<div class="bubble">${esc(q)}</div>`);
-  const card = add("assistant", `<div class="card"></div>`).querySelector(".card");
-  const traceEl = document.createElement("div"); traceEl.className = "trace"; card.appendChild(traceEl);
-  const pulse = document.createElement("div"); pulse.className = "tstep working";
-  pulse.innerHTML = `<span class="spin"></span><span class="meta">agent working…</span>`;
-  traceEl.appendChild(pulse);
+  const q=(text||"").trim();if(!q||busy)return;
+  showView("review");busy=true;$("#send").disabled=true;$("#q").value="";empty.style.display="none";
+  add("user",`<div class="bubble">${esc(q)}</div>`);
+  const card=add("assistant",`<div class="card"></div>`).querySelector(".card");
+  const traceEl=document.createElement("div");traceEl.className="trace";card.appendChild(traceEl);
+  const pulse=document.createElement("div");pulse.className="tstep working";
+  pulse.innerHTML=`<span class="spin"></span><span class="meta">agent working…</span>`;traceEl.appendChild(pulse);
   scroll();
 
-  let runId = null;
-  try {
-    await readSSE("/api/review/stream", {request:q}, ev => {
-      if (ev.type === "run") runId = ev.run_id;
-      else if (ev.type === "node"){
-        (ev.trace||[]).forEach(step => {
-          const {node, rest} = traceLabel(step);
-          const row = document.createElement("div"); row.className = "tstep";
-          row.innerHTML = `<span class="nd ${GROUP[node]||""}">${node}</span><span class="meta">${esc(rest)}</span>`;
-          traceEl.insertBefore(row, pulse);
-        });
-        scroll();
-      }
-      else if (ev.type === "awaiting_approval"){
-        pulse.remove(); renderResult(card, ev); gate(card, ev.run_id || runId); scroll();
-      }
-      else if (ev.type === "completed"){
-        pulse.remove(); renderResult(card, ev); completed(card, ev); scroll();
-      }
-      else if (ev.type === "error"){
-        pulse.remove();
-        const d = document.createElement("div"); d.className = "no"; d.textContent = "⚠️ " + ev.message;
-        card.appendChild(d);
-      }
+  let runId=null,clientId="",liveBrief=null,streamed="";
+  try{
+    await readSSE("/api/review/stream",{request:q},ev=>{
+      if(ev.type==="run")runId=ev.run_id;
+      else if(ev.type==="node"){(ev.trace||[]).forEach(step=>{const{node,rest}=traceLabel(step);
+        const r=document.createElement("div");r.className="tstep";
+        r.innerHTML=`<span class="nd ${GROUP[node]||""}">${node}</span><span class="meta">${esc(rest)}</span>`;
+        traceEl.insertBefore(r,pulse);});scroll();}
+      else if(ev.type==="draft_token"){
+        if(!liveBrief){pulse.querySelector(".meta").textContent="drafting…";
+          liveBrief=document.createElement("div");liveBrief.className="answer";card.appendChild(liveBrief);}
+        streamed+=ev.text;liveBrief.innerHTML=inline(streamed)+'<span class="caret"></span>';scroll();}
+      else if(ev.type==="awaiting_approval"){
+        pulse.remove();if(liveBrief)liveBrief.remove();clientId=ev.client_id||"";
+        renderResult(card,ev);addToolbar(card,runId,clientId);gate(card,ev.run_id||runId);scroll();}
+      else if(ev.type==="completed"){pulse.remove();if(liveBrief)liveBrief.remove();renderResult(card,ev);completed(card,ev);scroll();}
+      else if(ev.type==="error"){pulse.remove();const d=document.createElement("div");d.className="no";d.textContent="⚠️ "+ev.message;card.appendChild(d);}
     });
-  } catch(e){
-    pulse.remove();
-    const d = document.createElement("div"); d.className = "no";
-    d.textContent = "⚠️ " + String(e) + " — is the server running?"; card.appendChild(d);
-  }
-  busy=false; $("#send").disabled=false;
+  }catch(e){pulse.remove();const d=document.createElement("div");d.className="no";d.textContent="⚠️ "+String(e)+" — is the server running?";card.appendChild(d);}
+  busy=false;$("#send").disabled=false;
 }
 
-function gate(card, runId){
-  const g = document.createElement("div"); g.className = "gate";
-  g.innerHTML = `
-    <div class="h"><span class="pill">⏸ Advisor approval required</span></div>
+function addToolbar(card,runId,clientId){
+  const bar=document.createElement("div");bar.className="toolbar";
+  const ev=document.createElement("button");ev.className="tbtn";ev.textContent="⚖ Evaluate briefing";
+  ev.onclick=()=>runEval(card,runId,ev);
+  bar.appendChild(ev);
+  if(clientId){const gb=document.createElement("button");gb.className="tbtn";gb.textContent="◫ Knowledge graph";
+    gb.onclick=()=>toggleGraph(card,clientId,gb);bar.appendChild(gb);}
+  card.appendChild(bar);
+}
+
+async function runEval(card,runId,btn){
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>scoring…';
+  let s;try{s=await(await fetch(`/api/review/${runId}/eval`,{method:"POST"})).json();}
+  catch(e){btn.textContent="⚠ eval failed";return;}
+  btn.remove();
+  const el=document.createElement("div");el.className="eval";
+  el.innerHTML=`<h4>⚖ Evaluation (LLM-as-judge + hard metrics) — overall <span class="st ${s.overall>=.8?'pass':s.overall>=.6?'warn':'fail'}">${(s.overall*100).toFixed(0)}%</span></h4>`;
+  const meters=[["Citation coverage",s.citation_coverage.score,`${s.citation_coverage.cited}/${s.citation_coverage.total} sentences`],
+    ["Groundedness",s.groundedness.score,"claims supported by sources"],
+    ["Suitability",s.suitability.score,"flagged findings surfaced"]];
+  meters.forEach(([lab,v,sub])=>{const col=v>=.8?"var(--green)":v>=.6?"var(--gold)":"var(--coral)";
+    el.insertAdjacentHTML("beforeend",`<div class="meter"><span class="lab">${lab}</span>`+
+      `<span class="bar"><i style="width:${(v*100).toFixed(0)}%;background:${col}"></i></span>`+
+      `<span class="val">${(v*100).toFixed(0)}%</span></div><div class="hint" style="margin:0 0 4px 150px">${sub}</div>`);});
+  (s.groundedness.unsupported||[]).forEach(u=>el.insertAdjacentHTML("beforeend",`<div class="note">⚠ unsupported claim: ${esc(u)}</div>`));
+  (s.suitability.missed||[]).forEach(m=>el.insertAdjacentHTML("beforeend",`<div class="note">⚠ finding not surfaced: ${esc(m)}</div>`));
+  card.appendChild(el);scroll();
+}
+
+async function toggleGraph(card,clientId,btn){
+  const existing=card.querySelector("svg.kg");
+  if(existing){existing.remove();btn.textContent="◫ Knowledge graph";return;}
+  btn.textContent="◫ Hide graph";
+  const data=await(await fetch(`/api/graph/${clientId}`)).json();
+  card.appendChild(renderGraph(data));scroll();
+}
+
+// Layered SVG of the client→security→issuer→sector graph. Hand-built, no library.
+function renderGraph(data){
+  const COLX={Client:70,RiskProfile:70,Security:280,Policy:280,Issuer:500,Sector:700};
+  const byKind={};data.nodes.forEach(n=>{(byKind[n.kind]=byKind[n.kind]||[]).push(n);});
+  const pos={};const gap=46;let maxRows=0;
+  Object.entries(byKind).forEach(([kind,list])=>{maxRows=Math.max(maxRows,list.length);
+    list.forEach((n,i)=>{pos[n.id]={x:COLX[kind]??400,y:60+i*gap,kind};});});
+  // RiskProfile sits below the client column
+  if(byKind.RiskProfile)byKind.RiskProfile.forEach((n,i)=>{pos[n.id].y=60+(byKind.Client?.length||0)*gap+30+i*gap;});
+  const H=Math.max(260,80+maxRows*gap);
+  const NS="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(NS,"svg");svg.setAttribute("class","kg");svg.setAttribute("viewBox",`0 0 780 ${H}`);
+  const col={Client:"#2dd4bf",Security:"#6ea8fe",Issuer:"#f0b429",Sector:"#8b98a9",Policy:"#f0859b",RiskProfile:"#5ed18f"};
+  // edges
+  data.edges.forEach(e=>{const a=pos[e.source],b=pos[e.target];if(!a||!b)return;
+    const ln=document.createElementNS(NS,"line");ln.setAttribute("x1",a.x+60);ln.setAttribute("y1",a.y);
+    ln.setAttribute("x2",b.x-60);ln.setAttribute("y2",b.y);ln.setAttribute("stroke","#2a3646");ln.setAttribute("stroke-width","1.2");svg.appendChild(ln);
+    if(e.rel==="HOLDS"){const t=document.createElementNS(NS,"text");t.setAttribute("x",(a.x+b.x)/2);t.setAttribute("y",(a.y+b.y)/2-3);
+      t.setAttribute("fill","#8b98a9");t.setAttribute("font-size","10");t.setAttribute("text-anchor","middle");t.textContent=(e.weight*100).toFixed(0)+"%";svg.appendChild(t);}});
+  // nodes
+  data.nodes.forEach(n=>{const p=pos[n.id];const c=col[n.kind]||"#8b98a9";
+    let stroke=c,fill="#0f141d";if(n.restricted){stroke="#f0859b";}if(n.over_limit){stroke="#f0b429";}
+    const w=118,h=30;const g=document.createElementNS(NS,"g");
+    const rect=document.createElementNS(NS,"rect");rect.setAttribute("x",p.x-w/2);rect.setAttribute("y",p.y-h/2);
+    rect.setAttribute("width",w);rect.setAttribute("height",h);rect.setAttribute("rx","7");
+    rect.setAttribute("fill",fill);rect.setAttribute("stroke",stroke);rect.setAttribute("stroke-width",n.restricted||n.over_limit?"2":"1.2");g.appendChild(rect);
+    const t=document.createElementNS(NS,"text");t.setAttribute("x",p.x);t.setAttribute("y",p.y+1);t.setAttribute("fill","#e6edf3");
+    t.setAttribute("font-size","10.5");t.setAttribute("text-anchor","middle");
+    let lbl=n.label.length>17?n.label.slice(0,16)+"…":n.label;t.textContent=lbl;g.appendChild(t);
+    const k=document.createElementNS(NS,"text");k.setAttribute("x",p.x);k.setAttribute("y",p.y+12);k.setAttribute("fill",c);
+    k.setAttribute("font-size","8");k.setAttribute("text-anchor","middle");k.textContent=n.over_limit?"over limit":n.restricted?"restricted":n.kind.toLowerCase();g.appendChild(k);
+    svg.appendChild(g);});
+  return svg;
+}
+
+function gate(card,runId){
+  const g=document.createElement("div");g.className="gate";
+  g.innerHTML=`<div class="h"><span class="pill">⏸ Advisor approval required</span></div>
     <p>The agent has paused. Nothing is shared with the client until you approve.</p>
-    <div class="gbtns">
-      <button class="allow">Approve &amp; finalize</button>
+    <div class="gbtns"><button class="allow">Approve &amp; finalize</button>
       <button class="reject">Reject</button>
-      <input placeholder="reason (optional, the agent learns from it)" style="display:none">
-    </div>`;
-  const allow = g.querySelector(".allow"), reject = g.querySelector(".reject"), note = g.querySelector("input");
-  let rejecting = false;
-  allow.onclick = () => decide(card, g, runId, "approved", "");
-  reject.onclick = () => {
-    if (!rejecting){ rejecting = true; note.style.display = "block"; reject.textContent = "Confirm reject"; note.focus(); }
-    else decide(card, g, runId, "rejected", note.value.trim());
-  };
+      <input placeholder="reason (optional, the agent learns from it)" style="display:none"></div>`;
+  const allow=g.querySelector(".allow"),reject=g.querySelector(".reject"),note=g.querySelector("input");let rejecting=false;
+  allow.onclick=()=>decide(card,g,runId,"approved","");
+  reject.onclick=()=>{if(!rejecting){rejecting=true;note.style.display="block";reject.textContent="Confirm reject";note.focus();}
+    else decide(card,g,runId,"rejected",note.value.trim());};
   card.appendChild(g);
 }
-
-async function decide(card, gateEl, runId, decision, noteVal){
-  gateEl.innerHTML = `<span class="spin"></span> Resuming run…`;
-  let res;
-  try {
-    res = await (await fetch(`/api/review/${runId}/decision`, {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({decision, note:noteVal})
-    })).json();
-  } catch(e){ gateEl.innerHTML = `<span class="no">⚠️ ${esc(String(e))}</span>`; return; }
-  gateEl.remove();
-  if (res.final && res.decision !== "rejected" && res.final !== card.querySelector(".answer")?.textContent){
-    // show finalized briefing if it differs (e.g. edited note appended)
-  }
-  completed(card, {status:"completed", decision:res.decision, final:res.final, audit_ok:res.audit_ok});
-  scroll();
+async function decide(card,gateEl,runId,decision,noteVal){
+  gateEl.innerHTML=`<span class="spin"></span> Resuming run…`;
+  let res;try{res=await(await fetch(`/api/review/${runId}/decision`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({decision,note:noteVal})})).json();}
+  catch(e){gateEl.innerHTML=`<span class="no">⚠️ ${esc(String(e))}</span>`;return;}
+  gateEl.remove();completed(card,{decision:res.decision,final:res.final,audit_ok:res.audit_ok});scroll();
+}
+function completed(card,data){
+  const d=document.createElement("div");d.className="decided";const dec=data.decision||"completed";
+  const glyph=dec==="rejected"?`<span class="no">✕ rejected</span>`:dec==="approved"||dec==="edited"?`<span class="ok">✓ ${dec}</span>`:"✓ done";
+  let extra="";if(data.audit_ok!==undefined)extra=` · audit chain <span class="${data.audit_ok?"ok":"no"}">${data.audit_ok?"verified ✓":"broken ✗"}</span>`;
+  if(dec==="rejected"&&data.final)extra+=` · ${esc(data.final)}`;
+  d.innerHTML=`Advisor decision: ${glyph}${extra}`;card.appendChild(d);
 }
 
-function completed(card, data){
-  const d = document.createElement("div"); d.className = "decided";
-  const dec = data.decision || "completed";
-  const glyph = dec==="rejected" ? `<span class="no">✕ rejected</span>`
-    : dec==="approved"||dec==="edited" ? `<span class="ok">✓ ${dec}</span>` : "✓ done";
-  let extra = "";
-  if (data.audit_ok !== undefined)
-    extra = ` · audit chain <span class="${data.audit_ok?"ok":"no"}">${data.audit_ok?"verified ✓":"broken ✗"}</span>`;
-  if (dec==="rejected" && data.final) extra += ` · ${esc(data.final)}`;
-  d.innerHTML = `Advisor decision: ${glyph}${extra}`;
-  card.appendChild(d);
+async function loadDashboard(){
+  const tb=$("#clientrows");tb.innerHTML='<tr><td colspan="5" class="mut">Scanning…</td></tr>';
+  let rows;try{rows=await(await fetch("/api/portfolio/scan")).json();}catch(e){tb.innerHTML='<tr><td colspan="5" class="no">scan failed</td></tr>';return;}
+  tb.innerHTML="";
+  rows.forEach(r=>{const tr=document.createElement("tr");tr.onclick=()=>run(`Prepare a portfolio review for ${r.name}`);
+    const flags=r.flags.map(f=>`<span class="flag">${f}</span>`).join("")||'<span class="mut">—</span>';
+    tr.innerHTML=`<td><b>${esc(r.name)}</b> <span class="mut">${r.client_id}</span></td>`+
+      `<td>${esc(r.risk)}</td><td><span class="sbadge ${r.status}">${r.status.toUpperCase()}</span></td>`+
+      `<td>${flags}</td><td>${esc(r.top_issuer)} <span class="mut">${(r.top_issuer_weight*100).toFixed(0)}%</span></td>`;
+    tb.appendChild(tr);});
 }
-
-function add(role, html){
-  const row = document.createElement("div"); row.className = "row "+role; row.innerHTML = html;
-  stream.appendChild(row); return row;
-}
-function scroll(){ stream.scrollTo({top:stream.scrollHeight, behavior:"smooth"}); }
 </script>
 </body>
 </html>
