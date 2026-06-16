@@ -7,6 +7,7 @@ Built on **LangGraph**.
 
 > **▶ Live demo:** **https://aptsalt.github.io/alpha-advisor/** &nbsp;·&nbsp;
 > **🎬 90-sec walkthrough:** [docs/alpha-advisor-demo.mp4](docs/alpha-advisor-demo.mp4) &nbsp;·&nbsp;
+> **🧠 Visual learning page:** **https://aptsalt.github.io/alpha-advisor/learn.html** &nbsp;·&nbsp;
 > **📘 Study guide:** [docs/study-guide.html](docs/study-guide.html)
 >
 > _The hosted demo replays canned example runs (GitHub Pages has no model). Clone and run for
