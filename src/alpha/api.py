@@ -14,10 +14,11 @@ scalable behind a load balancer on Azure Container Apps.
 """
 from __future__ import annotations
 
+import json
 import os
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from langgraph.types import Command
 from pydantic import BaseModel
 
@@ -79,6 +80,56 @@ def review(req: ReviewRequest) -> dict:
         "citations": state.get("citations", []),
         "trace": state.get("trace", []),
     }
+
+
+def _sse(obj: dict) -> str:
+    return f"data: {json.dumps(obj)}\n\n"
+
+
+@app.post("/api/review/stream")
+def review_stream(req: ReviewRequest) -> StreamingResponse:
+    """Same as /api/review but streams each node's completion as a Server-Sent Event, so
+    the UI can show the agent working live instead of waiting on a spinner — which matters
+    when a real local/Azure model is doing the thinking. Ends with an `awaiting_approval`
+    (or `completed`) event; the advisor's decision still goes through /decision."""
+    _counter["n"] += 1
+    run_id = req.run_id or f"run-{_counter['n']}"
+    thread = {"configurable": {"thread_id": run_id}}
+
+    def gen():
+        yield _sse({"type": "run", "run_id": run_id})
+        try:
+            for chunk in _graph.stream({"request": req.request}, thread, stream_mode="updates"):
+                if "__interrupt__" in chunk:
+                    continue  # the pause; we surface the full payload from state below
+                for node, update in chunk.items():
+                    if not isinstance(update, dict):
+                        continue
+                    yield _sse({
+                        "type": "node", "node": node,
+                        "trace": update.get("trace", []),
+                        "compliance": update.get("compliance"),
+                        "compliance_status": update.get("compliance_status"),
+                        "draft": update.get("draft"),
+                        "citations": update.get("citations"),
+                    })
+            state = _state(run_id)
+            snap = _graph.get_state(thread)
+            if snap.next:  # paused at the approval interrupt
+                yield _sse({"type": "awaiting_approval", "run_id": run_id,
+                            "compliance_status": state.get("compliance_status"),
+                            "compliance": state.get("compliance", []),
+                            "draft": state.get("draft", ""),
+                            "citations": state.get("citations", [])})
+            else:
+                yield _sse({"type": "completed", "run_id": run_id,
+                            "final": state.get("final") or state.get("draft", "")})
+        except Exception as e:  # surface errors to the UI rather than a dead stream
+            yield _sse({"type": "error", "message": str(e)})
+        yield _sse({"type": "done"})
+
+    return StreamingResponse(gen(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
 @app.post("/api/review/{run_id}/decision")

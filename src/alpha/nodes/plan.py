@@ -14,7 +14,7 @@ _SYS = ("[TASK:classify_intent] You are a wealth-advisory planning agent. Classi
 
 def plan_node(state: AdvisorState) -> dict:
     request = state["request"]
-    intent = llm.chat(_SYS, request).strip().split()[0].lower()
+    intent = llm.chat(_SYS, request, fast=True).strip().split()[0].lower()
     if intent not in {"portfolio_review", "holding_lookup", "general"}:
         intent = "portfolio_review"
 

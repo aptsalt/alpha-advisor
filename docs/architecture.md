@@ -48,6 +48,7 @@ posting a feature you can point at and explain.
 | **Agentic AI / Agentic RAG** | `nodes/retrieve.py` — retrieve → **grade** → **rewrite & retry** loop via a conditional edge (`should_retry`). Not one-shot RAG. |
 | **LangGraph** (or AutoGen/CrewAI/SK) | `graph.py` — `StateGraph`, conditional edges, `interrupt()`, checkpointer. The same flow in the other three frameworks: `docs/frameworks.md`. |
 | **Strong Python** | Typed `AdvisorState`, pure-ish node functions, provider abstraction, `lru_cache`d corpus, dataclasses. |
+| **Cost/latency engineering** | Task-based model routing (`llm.chat(..., fast=True)`) — a small model grades/classifies, a strong model drafts; graph facts skip LLM grading entirely. Live SSE streaming of node events (`/api/review/stream`). |
 | **RAG architectures + vector databases** | `rag/vectorstore.py` — embed + cosine top-k behind a `VectorStore` interface (swap Chroma / PGVector / Azure AI Search). |
 | **Graph RAG + knowledge graphs** | `rag/graphrag.py` — `client→holds→security→issuer / →sector` graph; multi-hop queries (issuer/sector concentration, restricted-list hits) vectors can't answer. |
 | **APIs / enterprise tools** | `nodes/market.py` — market data modelled as a *tool call*, not model free-text. |

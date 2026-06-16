@@ -18,11 +18,16 @@ from . import config
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
-def chat(system: str, user: str, *, temperature: float = 0.2, max_tokens: int = 700) -> str:
+def chat(system: str, user: str, *, fast: bool = False,
+         temperature: float = 0.2, max_tokens: int = 700) -> str:
+    """`fast=True` routes high-frequency, low-stakes calls (classification, grading) to a
+    smaller/cheaper model; the default routes to the strong model used for drafting."""
     if config.PROVIDER == "ollama":
-        return _ollama_chat(system, user, temperature, max_tokens)
+        model = config.OLLAMA_FAST_MODEL if fast else config.OLLAMA_CHAT_MODEL
+        return _ollama_chat(model, system, user, temperature, max_tokens)
     if config.PROVIDER == "azure":
-        return _azure_chat(system, user, temperature, max_tokens)
+        deployment = config.AZURE_FAST_DEPLOYMENT if fast else config.AZURE_CHAT_DEPLOYMENT
+        return _azure_chat(deployment, system, user, temperature, max_tokens)
     return _mock_chat(system, user)
 
 
@@ -97,11 +102,11 @@ def _mock_briefing(user: str) -> str:
 
 
 # ── Ollama provider (local) ───────────────────────────────────────────────────
-def _ollama_chat(system: str, user: str, temperature: float, max_tokens: int) -> str:
+def _ollama_chat(model: str, system: str, user: str, temperature: float, max_tokens: int) -> str:
     r = httpx.post(
         f"{config.OLLAMA_HOST}/api/chat",
         json={
-            "model": config.OLLAMA_CHAT_MODEL,
+            "model": model,
             "messages": [
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
@@ -129,8 +134,8 @@ def _ollama_embed(texts: list[str]) -> np.ndarray:
 
 
 # ── Azure OpenAI provider (production target) ─────────────────────────────────
-def _azure_chat(system: str, user: str, temperature: float, max_tokens: int) -> str:
-    url = (f"{config.AZURE_ENDPOINT}/openai/deployments/{config.AZURE_CHAT_DEPLOYMENT}"
+def _azure_chat(deployment: str, system: str, user: str, temperature: float, max_tokens: int) -> str:
+    url = (f"{config.AZURE_ENDPOINT}/openai/deployments/{deployment}"
            f"/chat/completions?api-version={config.AZURE_API_VERSION}")
     r = httpx.post(
         url,

@@ -47,9 +47,10 @@ python tests/test_smoke.py        # 6 end-to-end tests, mock mode
 PYTHONPATH=src uvicorn alpha.api:app --port 8200      # then open http://localhost:8200
 ```
 
-A single-page UI (served by the API itself) shows the live agent trace, the compliance
-findings, the cited briefing, and an **Approve / Reject** gate that drives the real
-human-in-the-loop interrupt. The JSON API underneath:
+A single-page UI (served by the API itself) **streams the agent trace live** (SSE — each
+node appears as it completes), then shows the compliance findings, the cited briefing, and
+an **Approve / Reject** gate that drives the real human-in-the-loop interrupt. The JSON API
+underneath:
 
 ```bash
 curl -s -X POST localhost:8200/api/review -H "Content-Type: application/json" \

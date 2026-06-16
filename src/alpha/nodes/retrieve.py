@@ -22,7 +22,8 @@ _REWRITE_SYS = ("[TASK:rewrite_query] The previous retrieval was too weak. Rewri
 
 
 def _grade(question: str, doc: dict) -> float:
-    raw = llm.chat(_GRADE_SYS, f"QUESTION:{question}\nDOCUMENT:{doc['title']}. {doc['text']}")
+    raw = llm.chat(_GRADE_SYS, f"QUESTION:{question}\nDOCUMENT:{doc['title']}. {doc['text']}",
+                   fast=True)
     try:
         return max(0.0, min(1.0, float(raw.strip().split()[0])))
     except (ValueError, IndexError):
@@ -35,18 +36,21 @@ def retrieve_node(state: AdvisorState) -> dict:
     retries = state.get("retries", 0)
 
     # 1. pick sources — vector (prose) + graph (this client's structure)
-    candidates = corpus.vector_store().search(query, config.RETRIEVE_TOP_K)
-    if client_id:
-        candidates += corpus.knowledge_graph().as_facts(client_id)
+    vector_docs = corpus.vector_store().search(query, config.RETRIEVE_TOP_K)
+    graph_facts = corpus.knowledge_graph().as_facts(client_id) if client_id else []
 
-    # 2. grade each candidate; keep the ones above threshold
+    # 2. LLM-grade only the *prose* candidates (where relevance genuinely varies). Graph
+    #    facts are THIS client's own structure — definitionally relevant — so they pass
+    #    through with their structural scores. This is both more correct and far fewer LLM
+    #    calls (the grading loop, not drafting, is the latency cost in agentic RAG).
     graded = []
-    for c in candidates:
+    for c in vector_docs:
         rel = _grade(query, c)
         if rel >= config.GRADE_THRESHOLD:
             graded.append({**c, "score": round(rel, 3)})
+    graded += graph_facts
     graded.sort(key=lambda d: -d["score"])
-    graded = graded[: config.RETRIEVE_TOP_K + 2]  # allow a few graph facts alongside prose
+    graded = graded[: config.RETRIEVE_TOP_K + 3]  # prose + the client's graph facts
 
     mean = round(sum(d["score"] for d in graded) / len(graded), 3) if graded else 0.0
     audit.log("retrieve", {"query": query, "kept": len(graded), "mean_grade": mean,
@@ -63,7 +67,7 @@ def retrieve_node(state: AdvisorState) -> dict:
 
 def rewrite_node(state: AdvisorState) -> dict:
     """Only runs when the grade gate sends us back. Broadens the query, then retrieval reruns."""
-    new_q = llm.chat(_REWRITE_SYS, f"QUERY:{state.get('query','')}").strip()
+    new_q = llm.chat(_REWRITE_SYS, f"QUERY:{state.get('query','')}", fast=True).strip()
     audit.log("rewrite_query", {"from": state.get("query", ""), "to": new_q},
               run_id=state.get("client_id", ""))
     return {"query": new_q, "trace": [{"node": "rewrite", "new_query": new_q}]}

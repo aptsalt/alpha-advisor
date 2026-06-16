@@ -50,6 +50,7 @@
     animation:rise .32s ease forwards}
   @keyframes rise{to{opacity:1;transform:none}}
   .tstep .nd{font-family:var(--mono);color:var(--blue);min-width:96px}
+  .tstep.working{color:var(--mut);animation:none;opacity:.85}
   .tstep .gov{color:var(--gold)} .tstep .rag{color:var(--blue)} .tstep .hitl{color:var(--teal)}
   .tstep .meta{color:var(--mut)}
 
@@ -201,35 +202,30 @@ function traceLabel(step){
   return { node, rest };
 }
 
-async function run(text){
-  const q = (text||"").trim();
-  if (!q || busy) return;
-  busy = true; $("#send").disabled = true; $("#q").value = ""; empty.style.display = "none";
-
-  add("user", `<div class="bubble">${esc(q)}</div>`);
-  const card = add("assistant", `<div class="card"><div class="loading"><span class="spin"></span>Agent working…</div></div>`).querySelector(".card");
-  scroll();
-
-  let data;
-  try {
-    data = await (await fetch("/api/review", {
-      method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({request:q})
-    })).json();
-  } catch(e){ card.innerHTML = `<div class="no">⚠️ ${esc(String(e))} — is the server running?</div>`; busy=false; $("#send").disabled=false; return; }
-
-  card.innerHTML = "";
-  // trace (staggered)
-  if (data.trace?.length){
-    const t = document.createElement("div"); t.className = "trace";
-    data.trace.forEach((step, i) => {
-      const {node, rest} = traceLabel(step);
-      const row = document.createElement("div"); row.className = "tstep"; row.style.animationDelay = (i*70)+"ms";
-      row.innerHTML = `<span class="nd ${GROUP[node]||""}">${node}</span><span class="meta">${esc(rest)}</span>`;
-      t.appendChild(row);
-    });
-    card.appendChild(t);
+// Hand-rolled SSE reader over fetch+POST (EventSource is GET-only). Dispatches each
+// typed event from /api/review/stream.
+async function readSSE(url, body, onEvent){
+  const res = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+  if (!res.body) throw new Error("no response stream");
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  let buf = "";
+  while (true){
+    const {value, done} = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, {stream:true});
+    let sep;
+    while ((sep = buf.indexOf("\n\n")) !== -1){
+      const frame = buf.slice(0, sep); buf = buf.slice(sep+2);
+      for (const line of frame.split("\n"))
+        if (line.startsWith("data:")){
+          const j = line.slice(5).trim();
+          if (j) try { onEvent(JSON.parse(j)); } catch {}
+        }
+    }
   }
-  // compliance
+}
+
+function renderResult(card, data){
   if (data.compliance?.length){
     const c = document.createElement("div"); c.className = "comp";
     c.innerHTML = `<h4>Compliance — overall <span class="st ${data.compliance_status}">${(data.compliance_status||"").toUpperCase()}</span></h4>`;
@@ -241,9 +237,8 @@ async function run(text){
     });
     card.appendChild(c);
   }
-  // draft
-  if (data.draft) card.appendChild(renderBriefing(data.draft));
-  // sources
+  const briefing = data.draft || data.final;
+  if (briefing) card.appendChild(renderBriefing(briefing));
   if (data.citations?.length){
     const s = document.createElement("div"); s.className = "sources";
     s.innerHTML = '<div class="lbl">Sources</div>';
@@ -254,10 +249,52 @@ async function run(text){
     });
     card.appendChild(s);
   }
-  // approval gate or completed
-  if (data.status === "awaiting_approval") gate(card, data.run_id);
-  else completed(card, data);
-  scroll(); busy=false; $("#send").disabled=false;
+}
+
+async function run(text){
+  const q = (text||"").trim();
+  if (!q || busy) return;
+  busy = true; $("#send").disabled = true; $("#q").value = ""; empty.style.display = "none";
+
+  add("user", `<div class="bubble">${esc(q)}</div>`);
+  const card = add("assistant", `<div class="card"></div>`).querySelector(".card");
+  const traceEl = document.createElement("div"); traceEl.className = "trace"; card.appendChild(traceEl);
+  const pulse = document.createElement("div"); pulse.className = "tstep working";
+  pulse.innerHTML = `<span class="spin"></span><span class="meta">agent working…</span>`;
+  traceEl.appendChild(pulse);
+  scroll();
+
+  let runId = null;
+  try {
+    await readSSE("/api/review/stream", {request:q}, ev => {
+      if (ev.type === "run") runId = ev.run_id;
+      else if (ev.type === "node"){
+        (ev.trace||[]).forEach(step => {
+          const {node, rest} = traceLabel(step);
+          const row = document.createElement("div"); row.className = "tstep";
+          row.innerHTML = `<span class="nd ${GROUP[node]||""}">${node}</span><span class="meta">${esc(rest)}</span>`;
+          traceEl.insertBefore(row, pulse);
+        });
+        scroll();
+      }
+      else if (ev.type === "awaiting_approval"){
+        pulse.remove(); renderResult(card, ev); gate(card, ev.run_id || runId); scroll();
+      }
+      else if (ev.type === "completed"){
+        pulse.remove(); renderResult(card, ev); completed(card, ev); scroll();
+      }
+      else if (ev.type === "error"){
+        pulse.remove();
+        const d = document.createElement("div"); d.className = "no"; d.textContent = "⚠️ " + ev.message;
+        card.appendChild(d);
+      }
+    });
+  } catch(e){
+    pulse.remove();
+    const d = document.createElement("div"); d.className = "no";
+    d.textContent = "⚠️ " + String(e) + " — is the server running?"; card.appendChild(d);
+  }
+  busy=false; $("#send").disabled=false;
 }
 
 function gate(card, runId){
