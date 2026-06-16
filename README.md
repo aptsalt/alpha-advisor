@@ -1,132 +1,180 @@
 # ALPHA Advisor
 
-A multi-agent **wealth-advisory copilot** that prepares a client portfolio review under
-human supervision — agentic RAG over documents **and** a knowledge graph, with governance,
-a real human-in-the-loop approval gate, and a tamper-evident audit trail. Built on
-**LangGraph**.
+**A multi-agent wealth-advisory copilot for regulated wealth management** — agentic RAG over
+documents **and** a knowledge graph, with governance, compliance, a real human-in-the-loop
+approval gate, proposed rebalancing trades, self-evaluation, and a tamper-evident audit trail.
+Built on **LangGraph**.
 
-> **▶ Live demo:** _add your Render URL here after deploying (see "Deploy" below)_ ·
-> **Study guide:** [`docs/study-guide.html`](docs/study-guide.html) ·
-> **Architecture:** [`docs/architecture.md`](docs/architecture.md)
+> **▶ Live demo:** **https://aptsalt.github.io/alpha-advisor/** &nbsp;·&nbsp;
+> **🎬 90-sec walkthrough:** [docs/alpha-advisor-demo.mp4](docs/alpha-advisor-demo.mp4) &nbsp;·&nbsp;
+> **📘 Study guide:** [docs/study-guide.html](docs/study-guide.html)
+>
+> _The hosted demo replays canned example runs (GitHub Pages has no model). Clone and run for
+> the live LLM on local Ollama or Azure OpenAI — see [Run it](#run-it)._
 
-![ALPHA Advisor — agent trace, compliance, cited briefing](docs/img/ui-trace.png)
+![ALPHA Advisor — agent trace, compliance, proposed trades](docs/img/screen-review.png)
 
-An advisor asks for a review; the system plans the work, retrieves from policy documents
-**and** a portfolio knowledge graph, calls a market-data tool, runs compliance checks,
-drafts a **cited** briefing, then **pauses for advisor approval** before finalizing —
-logging every step. Every line of the job posting maps to a working feature
-→ [`docs/architecture.md`](docs/architecture.md).
+An advisor asks for a review; the system **plans** the work, runs **agentic RAG** over policy
+documents and a client knowledge graph, calls **market-data tools**, runs **compliance checks**,
+**proposes rebalancing trades** to fix any breach, drafts a **fully cited briefing**, scores its
+own output, and **pauses for advisor approval** before finalizing — logging every step to a
+hash-chained audit trail.
 
-| Approval gate (human-in-the-loop) | Run it |
+---
+
+## Why it exists — and how it maps to the role
+
+Built as a working reference implementation for an **Agentic AI / Agentic RAG Engineer** role on
+an **ALPHA Wealth AI Platform** initiative — *autonomous reasoning, multi-agent collaboration, tool
+integration, and intelligent workflow execution within regulated wealth management.* Every line of
+that posting is a feature you can click:
+
+| Requirement | Where it lives in this repo |
 |---|---|
-| ![approval gate](docs/img/ui-approval.png) | The agent pauses on a real LangGraph `interrupt()`; the advisor approves or rejects; the run resumes and finalizes — audit chain verified. |
+| **Agentic AI / Agentic RAG** | `nodes/retrieve.py` — retrieval that **grades its own results** and **rewrites + retries** on weak evidence; not one-shot RAG |
+| **LangGraph** (or AutoGen / CrewAI / Semantic Kernel) | `graph.py` — `StateGraph`, conditional edges, `interrupt()`, checkpointer. Same flow in the other 3 frameworks: [docs/frameworks.md](docs/frameworks.md) |
+| **Strong Python** | typed `AdvisorState`, pure-ish node functions, provider abstraction, `lru_cache`d corpus |
+| **RAG architectures + vector databases** | `rag/vectorstore.py` — embed + cosine top-k behind a swappable `VectorStore` interface (Chroma / PGVector / Azure AI Search) |
+| **Graph RAG + knowledge graphs** | `rag/graphrag.py` — `client→holding→issuer→sector` graph; multi-hop concentration / restricted-list queries vectors can't answer |
+| **APIs / enterprise tools** | `nodes/market.py` — market data modelled as a **tool call**, not model free-text |
+| **AI governance, guardrails, explainability, compliance** | `nodes/guardrails.py` (PII redaction, policy block), `nodes/compliance.py` (suitability / restricted / concentration), citations on every claim, `evaluate.py` (LLM-as-judge) |
+| **Human-in-the-loop + auditability** | `nodes/approval.py` (`interrupt()` + `Command(resume=…)`), `audit.py` (hash-chained JSONL + `verify()`) |
+| **Scalable cloud deployment** | stateless graph + durable checkpointer → Azure Container Apps; OpenTelemetry tracing. [docs/deployment.md](docs/deployment.md) |
+| **Azure OpenAI · knowledge graphs · enterprise GenAI** | `ALPHA_PROVIDER=azure`; Neo4j adapter (`rag/neo4j_adapter.py`); Postgres checkpointer |
+| **Wealth-management domain** | synthetic IPS / suitability / restricted-list policies, client portfolios, market data |
 
-## Run it (zero config, no keys)
+---
+
+## What you can do (features)
+
+| | |
+|---|---|
+| ![compliance, rebalance & cited briefing](docs/img/screen-review.png) | **Agentic review** — live streamed trace, compliance findings, **proposed rebalancing trades**, and a cited briefing. |
+| ![evaluation + knowledge graph](docs/img/screen-eval-graph.png) | **Self-evaluation + graph viz** — LLM-as-judge scores (groundedness, suitability, citation coverage) and the client's knowledge graph (restricted = red, over-limit = amber). |
+| ![portfolio dashboard](docs/img/screen-dashboard.png) | **Portfolio dashboard** — a fast, LLM-free book-wide compliance scan; the flagged-for-review queue. |
+| ![human-in-the-loop approval](docs/img/ui-approval.png) | **Human-in-the-loop** — the agent pauses on a real LangGraph `interrupt()`; the advisor approves or rejects; the run resumes and the audit chain is verified. |
+
+- **Agentic RAG** — the retriever grades each document and rewrites/retries on weak evidence.
+- **Graph RAG** — a `client→holding→issuer→sector` knowledge graph answers multi-hop questions
+  (e.g. a **78% issuer concentration aggregated across two funds** — invisible to vector search).
+- **Rebalancing** — computes specific trades (divest restricted, trim over-concentrated issuers,
+  reallocate to a diversified core) that bring the book back within policy. Numbers are computed,
+  never generated.
+- **Governance** — PII redaction before the model, a hard policy gate (prohibited requests never
+  reach client data), citation-grounded output, an advice disclaimer.
+- **Self-evaluation** — an LLM-as-judge scores **groundedness** and **suitability**, plus a
+  deterministic **citation-coverage** metric. Offline scorecard: `python run_eval.py`.
+- **Human-in-the-loop** — a real `interrupt()` persists the run; the advisor approves/rejects;
+  any replica can resume it (durable checkpointer).
+- **Tamper-evident audit** — append-only, hash-chained JSONL with `verify()`.
+- **Token-level streaming** — the briefing types out live over SSE.
+- **Provider-portable** — `mock` (no keys) · `ollama` (local) · `azure` (production) — same graph.
+
+---
+
+## The orchestration graph
+
+```
+ START → plan → input_guard ──blocked──▶ refuse ▶ END
+                    │ ok
+                    ▼
+              retrieve ⇄ rewrite      (agentic RAG: grade → retry)
+                    ▼
+                 market               (tool: market data)
+                    ▼
+               compliance             (suitability · restricted · concentration)
+                    ▼
+               rebalance              (proposed trades to fix breaches)
+                    ▼
+                 draft                (cited briefing, streamed)
+                    ▼
+              output_guard            (citations · PII · disclaimer)
+                    ▼
+               approval  ⏸  interrupt() → advisor approves / rejects
+                    ├─ approved ▶ finalize ▶ END
+                    └─ rejected ▶ discard  ▶ END
+
+ every node writes a hash-chained audit record · one OpenTelemetry span
+```
+
+Full walkthrough + design rationale: [docs/architecture.md](docs/architecture.md).
+
+---
+
+## Run it
+
+Default `ALPHA_PROVIDER=mock` runs the whole graph with **no keys and no network**.
 
 ```bash
-python -m venv .venv && .venv/Scripts/pip install -r requirements.txt    # Windows
+python -m venv .venv && .venv/Scripts/pip install -r requirements.txt      # Windows
 # (macOS/Linux: source .venv/bin/activate && pip install -r requirements.txt)
 
+# CLI
 python run.py "Prepare a portfolio review for Jane Harrington" --approve
-python run.py "review C-1002" --reject --note "rebalance first"
 python run.py "Can you guarantee 20% returns?"          # → refused by policy
-python run.py "review Jane Harrington"                  # interactive approval gate
+
+# Web UI + API  → open http://localhost:8200
+PYTHONPATH=src uvicorn alpha.api:app --port 8200
+
+# Evaluation harness (scorecard → eval-report.json)
+python run_eval.py
+
+# Tests (6 end-to-end, mock mode)
+python tests/test_smoke.py
 ```
 
-Default `ALPHA_PROVIDER=mock` runs the full graph deterministically with no network.
-Set `ALPHA_PROVIDER=ollama` to drive it with a local model (e.g. `qwen2.5-coder`), or
-`ALPHA_PROVIDER=azure` for Azure OpenAI — the graph is identical across all three.
+**Live local model (Ollama):** `set ALPHA_PROVIDER=ollama` — routes high-frequency grading to a
+small fast model (`qwen2.5:3b`) and drafting to a stronger one (`gemma3:12b`), with
+`nomic-embed-text` for retrieval. **Azure OpenAI:** `set ALPHA_PROVIDER=azure` + the `AZURE_*` vars
+in `.env.example` — nothing else changes.
+
+### API
 
 ```bash
-python tests/test_smoke.py        # 6 end-to-end tests, mock mode
+curl -s -X POST localhost:8200/api/review/stream  -d '{"request":"review Jane Harrington"}' -H "Content-Type: application/json"
+curl -s -X POST localhost:8200/api/review/run-1/decision -d '{"decision":"approved"}' -H "Content-Type: application/json"
+curl -s        localhost:8200/api/portfolio/scan
+curl -s        localhost:8200/api/graph/C-1001
 ```
 
-## The web UI + API
+---
 
-```bash
-PYTHONPATH=src uvicorn alpha.api:app --port 8200      # then open http://localhost:8200
-```
+## Deploy
 
-A single-page UI (served by the API itself) **streams the agent trace live** (SSE — each
-node appears as it completes), then shows the compliance findings, the cited briefing, and
-an **Approve / Reject** gate that drives the real human-in-the-loop interrupt. The JSON API
-underneath:
+- **Free, one-click (live LLM-less / mock):** [`render.yaml`](render.yaml) →
+  [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/aptsalt/alpha-advisor)
+- **Static demo (this repo's GitHub Pages):** `docs/` — the real UI replaying canned runs.
+- **Azure production:** Container Apps + Azure OpenAI + Postgres checkpointer + Neo4j +
+  OpenTelemetry → Azure Monitor. [docs/deployment.md](docs/deployment.md).
 
-```bash
-curl -s -X POST localhost:8200/api/review -H "Content-Type: application/json" \
-     -d '{"request":"review Jane Harrington"}'                       # → run_id + briefing
-curl -s -X POST localhost:8200/api/review/run-1/decision -H "Content-Type: application/json" \
-     -d '{"decision":"approved"}'                                    # → resume + finalize
-```
-
-The graph is stateless; paused runs live in the checkpointer (`InMemorySaver` locally,
-Postgres in prod), so any replica can resume any run.
-
-## Deploy (free, shareable)
-
-This is a stateful agent (the approval gate pauses a real run), so it wants a **persistent
-process** — [`render.yaml`](render.yaml) defines a free Render web service:
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/aptsalt/alpha-advisor)
-
-1. Click the button (or [render.com](https://render.com) → **New → Blueprint** → this repo).
-   Sign in with GitHub, approve — Render reads `render.yaml` and deploys. You get a URL like
-   `https://alpha-advisor.onrender.com`.
-2. Put that URL in the **Live demo** line at the top of this README.
-3. (optional) Set the repo variable `DEPLOY_URL` to that URL — the included GitHub Action
-   pings it every 14 min so the free instance never cold-starts for a recruiter.
-
-For the **Azure** production path (Container Apps + Azure OpenAI + Postgres checkpointer +
-Neo4j + OpenTelemetry → Azure Monitor) see [`docs/deployment.md`](docs/deployment.md).
-Turn on per-node tracing anywhere with `ALPHA_TRACING=1`.
-
-## What you'll see
-
-```
-[plan] → [input_guard] → [retrieve ⇄ rewrite] → [market] → [compliance]
-       → [draft] → [output_guard] → [approval (interrupt)] → [finalize | discard]
-```
-
-On a real run the compliance node flags that the sample client holds a **restricted-list**
-security and is **over the single-issuer concentration limit** — findings that require a
-multi-hop graph query, not vector similarity — then pauses for the advisor.
-
-## Why it's built this way
-
-- **Agentic RAG, not naive RAG** — retrieval grades its own results and rewrites+retries on
-  weak evidence (`src/alpha/nodes/retrieve.py`).
-- **Vectors + a knowledge graph** — prose via a vector store, portfolio structure via a
-  `client→holding→issuer→sector` graph (`src/alpha/rag/`).
-- **Governance on both ends** — PII redaction + policy block in, citation/PII/disclaimer
-  checks out, three compliance checks with reasons (`src/alpha/nodes/guardrails.py`, `compliance.py`).
-- **Real human-in-the-loop** — LangGraph `interrupt()` + `Command(resume=...)` (`approval.py`).
-- **Tamper-evident audit** — append-only, hash-chained JSONL with `verify()` (`src/alpha/audit.py`).
-- **Provider-portable** — mock / Ollama / Azure OpenAI by config; runs fully on-prem.
+---
 
 ## Layout
 
 ```
-run.py                     CLI driver (runs to the interrupt, takes a decision, resumes)
+run.py                     CLI (runs to the interrupt, takes a decision, resumes)
+run_eval.py                offline LLM-as-judge scorecard
 src/alpha/
   graph.py                 the LangGraph spine
-  state.py                 typed shared state
-  llm.py                   mock | ollama | azure providers (chat + embed)
-  config.py  audit.py  corpus.py
-  nodes/                   plan · guardrails · retrieve · market · compliance · draft · approval · finalize
-  rag/                     vectorstore.py (numpy) · graphrag.py (networkx)
+  state.py  llm.py  config.py  audit.py  corpus.py  evaluate.py  advice.py  telemetry.py  checkpoint.py  api.py
+  nodes/                   plan · guardrails · retrieve · market · compliance · rebalance · draft · approval · finalize
+  rag/                     vectorstore.py (numpy) · graphrag.py (networkx) · neo4j_adapter.py
   data/synth.py            synthetic clients, documents, knowledge graph
+  web/index.html           single-page UI (served by the API)
 tests/test_smoke.py        6 end-to-end tests
-docs/                      architecture.md · frameworks.md · interview-qa.md
+docs/                      architecture · frameworks · interview-qa · deployment · study-guide.html · static demo
 ```
 
 ## Docs
 
-- [`docs/architecture.md`](docs/architecture.md) — the graph + JD→feature mapping + design rationale
-- [`docs/frameworks.md`](docs/frameworks.md) — LangGraph vs AutoGen vs CrewAI vs Semantic Kernel; production hardening
-- [`docs/interview-qa.md`](docs/interview-qa.md) — senior-level Q&A anchored to this code
+- [Architecture & JD mapping](docs/architecture.md) ·
+  [Frameworks: LangGraph vs AutoGen vs CrewAI vs Semantic Kernel](docs/frameworks.md) ·
+  [Deployment & scaling](docs/deployment.md) ·
+  [Interview Q&A](docs/interview-qa.md) ·
+  [Visual study guide](docs/study-guide.html)
 
 ---
 
-*All data is synthetic. No real clients, holdings, or PII. The orchestration, guardrails,
-and audit logic are the asset; the synthetic loaders and in-memory stores are swapped for
-real connectors (custodian, CRM, Azure AI Search, Neo4j) in production.*
+*All data is synthetic — no real clients, holdings, or PII. The orchestration, guardrails, and
+audit logic are the asset; the synthetic loaders and in-memory stores are swapped for real
+connectors (custodian, CRM, Azure AI Search, Neo4j) in production.*

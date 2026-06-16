@@ -1,0 +1,4 @@
+node_modules/
+video/
+package.json
+package-lock.json

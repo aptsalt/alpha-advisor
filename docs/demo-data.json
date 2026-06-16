@@ -1,0 +1,730 @@
+{
+ "health": {
+  "ok": true,
+  "provider": "ollama",
+  "chat_model": "gemma3:12b",
+  "fast_model": "qwen2.5:3b",
+  "top_k": 4,
+  "max_retries": 2,
+  "concentration_limit": 0.25
+ },
+ "clients": [
+  {
+   "client_id": "C-1001",
+   "name": "Jane Harrington",
+   "risk": "balanced"
+  },
+  {
+   "client_id": "C-1002",
+   "name": "Marcus Bell",
+   "risk": "growth"
+  }
+ ],
+ "scan": [
+  {
+   "client_id": "C-1001",
+   "name": "Jane Harrington",
+   "risk": "balanced",
+   "status": "fail",
+   "flags": [
+    "restricted_list",
+    "concentration"
+   ],
+   "top_issuer": "Vantage Funds",
+   "top_issuer_weight": 0.78,
+   "restricted": true
+  },
+  {
+   "client_id": "C-1002",
+   "name": "Marcus Bell",
+   "risk": "growth",
+   "status": "warn",
+   "flags": [
+    "concentration"
+   ],
+   "top_issuer": "Apex ETFs",
+   "top_issuer_weight": 0.5,
+   "restricted": false
+  }
+ ],
+ "graph": {
+  "C-1001": {
+   "nodes": [
+    {
+     "id": "C-1001",
+     "kind": "Client",
+     "label": "Jane Harrington"
+    },
+    {
+     "id": "PROFILE:C-1001",
+     "kind": "RiskProfile",
+     "label": "Balanced"
+    },
+    {
+     "id": "GLX",
+     "kind": "Security",
+     "label": "Global Equity Index",
+     "restricted": false
+    },
+    {
+     "id": "ISS-VANTAGE",
+     "kind": "Issuer",
+     "label": "Vantage Funds",
+     "over_limit": true
+    },
+    {
+     "id": "SECTOR:Equity",
+     "kind": "Sector",
+     "label": "Equity"
+    },
+    {
+     "id": "AGG",
+     "kind": "Security",
+     "label": "Aggregate Bond",
+     "restricted": false
+    },
+    {
+     "id": "SECTOR:Fixed Income",
+     "kind": "Sector",
+     "label": "Fixed Income"
+    },
+    {
+     "id": "NFE",
+     "kind": "Security",
+     "label": "NorthForge Energy",
+     "restricted": true
+    },
+    {
+     "id": "ISS-NORTHFORGE",
+     "kind": "Issuer",
+     "label": "NorthForge Inc.",
+     "over_limit": false
+    },
+    {
+     "id": "SECTOR:Energy",
+     "kind": "Sector",
+     "label": "Energy"
+    },
+    {
+     "id": "POLICY:restricted",
+     "kind": "Policy",
+     "label": "Restricted List"
+    }
+   ],
+   "edges": [
+    {
+     "source": "C-1001",
+     "target": "PROFILE:C-1001",
+     "rel": "HAS_PROFILE"
+    },
+    {
+     "source": "C-1001",
+     "target": "GLX",
+     "rel": "HOLDS",
+     "weight": 0.42
+    },
+    {
+     "source": "GLX",
+     "target": "ISS-VANTAGE",
+     "rel": "ISSUED_BY"
+    },
+    {
+     "source": "GLX",
+     "target": "SECTOR:Equity",
+     "rel": "IN_SECTOR"
+    },
+    {
+     "source": "C-1001",
+     "target": "AGG",
+     "rel": "HOLDS",
+     "weight": 0.36
+    },
+    {
+     "source": "AGG",
+     "target": "ISS-VANTAGE",
+     "rel": "ISSUED_BY"
+    },
+    {
+     "source": "AGG",
+     "target": "SECTOR:Fixed Income",
+     "rel": "IN_SECTOR"
+    },
+    {
+     "source": "C-1001",
+     "target": "NFE",
+     "rel": "HOLDS",
+     "weight": 0.22
+    },
+    {
+     "source": "NFE",
+     "target": "ISS-NORTHFORGE",
+     "rel": "ISSUED_BY"
+    },
+    {
+     "source": "NFE",
+     "target": "SECTOR:Energy",
+     "rel": "IN_SECTOR"
+    },
+    {
+     "source": "NFE",
+     "target": "POLICY:restricted",
+     "rel": "RESTRICTED_BY"
+    }
+   ],
+   "issuer_concentration": {
+    "Vantage Funds": 0.78,
+    "NorthForge Inc.": 0.22
+   }
+  },
+  "C-1002": {
+   "nodes": [
+    {
+     "id": "C-1002",
+     "kind": "Client",
+     "label": "Marcus Bell"
+    },
+    {
+     "id": "PROFILE:C-1002",
+     "kind": "RiskProfile",
+     "label": "Growth"
+    },
+    {
+     "id": "TQQ",
+     "kind": "Security",
+     "label": "Tech Growth ETF",
+     "restricted": false
+    },
+    {
+     "id": "ISS-APEX",
+     "kind": "Issuer",
+     "label": "Apex ETFs",
+     "over_limit": true
+    },
+    {
+     "id": "SECTOR:Equity",
+     "kind": "Sector",
+     "label": "Equity"
+    },
+    {
+     "id": "GLX",
+     "kind": "Security",
+     "label": "Global Equity Index",
+     "restricted": false
+    },
+    {
+     "id": "ISS-VANTAGE",
+     "kind": "Issuer",
+     "label": "Vantage Funds",
+     "over_limit": true
+    },
+    {
+     "id": "AGG",
+     "kind": "Security",
+     "label": "Aggregate Bond",
+     "restricted": false
+    },
+    {
+     "id": "SECTOR:Fixed Income",
+     "kind": "Sector",
+     "label": "Fixed Income"
+    }
+   ],
+   "edges": [
+    {
+     "source": "C-1002",
+     "target": "PROFILE:C-1002",
+     "rel": "HAS_PROFILE"
+    },
+    {
+     "source": "C-1002",
+     "target": "TQQ",
+     "rel": "HOLDS",
+     "weight": 0.5
+    },
+    {
+     "source": "TQQ",
+     "target": "ISS-APEX",
+     "rel": "ISSUED_BY"
+    },
+    {
+     "source": "TQQ",
+     "target": "SECTOR:Equity",
+     "rel": "IN_SECTOR"
+    },
+    {
+     "source": "C-1002",
+     "target": "GLX",
+     "rel": "HOLDS",
+     "weight": 0.3
+    },
+    {
+     "source": "GLX",
+     "target": "ISS-VANTAGE",
+     "rel": "ISSUED_BY"
+    },
+    {
+     "source": "GLX",
+     "target": "SECTOR:Equity",
+     "rel": "IN_SECTOR"
+    },
+    {
+     "source": "C-1002",
+     "target": "AGG",
+     "rel": "HOLDS",
+     "weight": 0.2
+    },
+    {
+     "source": "AGG",
+     "target": "ISS-VANTAGE",
+     "rel": "ISSUED_BY"
+    },
+    {
+     "source": "AGG",
+     "target": "SECTOR:Fixed Income",
+     "rel": "IN_SECTOR"
+    }
+   ],
+   "issuer_concentration": {
+    "Apex ETFs": 0.5,
+    "Vantage Funds": 0.5
+   }
+  }
+ },
+ "examples": {
+  "jane": {
+   "request": "Prepare a portfolio review for Jane Harrington",
+   "trace": [
+    {
+     "node": "plan",
+     "intent": "portfolio_review",
+     "client_id": "C-1001"
+    },
+    {
+     "node": "input_guard",
+     "blocked": false,
+     "pii_redacted": []
+    },
+    {
+     "node": "retrieve",
+     "query": "Prepare a portfolio review for Jane Harrington",
+     "kept": 6,
+     "mean_grade": 0.833,
+     "attempt": 1
+    },
+    {
+     "node": "market",
+     "n_holdings": 3,
+     "portfolio_ytd": 0.0051
+    },
+    {
+     "node": "compliance",
+     "status": "fail",
+     "checks": {
+      "suitability": "pass",
+      "restricted_list": "fail",
+      "concentration": "warn"
+     }
+    },
+    {
+     "node": "rebalance",
+     "trades": 4,
+     "compliant_after": true
+    },
+    {
+     "node": "draft",
+     "n_citations": 13
+    },
+    {
+     "node": "output_guard",
+     "issues": []
+    }
+   ],
+   "final": {
+    "type": "awaiting_approval",
+    "run_id": "run-1",
+    "client_id": "C-1001",
+    "compliance_status": "fail",
+    "compliance": [
+     {
+      "check": "suitability",
+      "status": "pass",
+      "detail": "Equity weight 64% is within tolerance of the Balanced target 60%."
+     },
+     {
+      "check": "restricted_list",
+      "status": "fail",
+      "detail": "Holdings on the restricted list: NorthForge Energy (22%). Reason: Active underwriting \u2014 material non-public information. Must be flagged for review."
+     },
+     {
+      "check": "concentration",
+      "status": "warn",
+      "detail": "Largest single-issuer weight is Vantage Funds at 78%, above the 25% policy limit."
+     }
+    ],
+    "rebalance": {
+     "trades": [
+      {
+       "action": "SELL",
+       "security": "NorthForge Energy",
+       "delta": -0.22,
+       "from_weight": 0.22,
+       "to_weight": 0.0,
+       "reason": "Restricted list (Restricted List) \u2014 divest in full."
+      },
+      {
+       "action": "TRIM",
+       "security": "Global Equity Index",
+       "delta": -0.2854,
+       "from_weight": 0.42,
+       "to_weight": 0.1346,
+       "reason": "Vantage Funds at 78% exceeds the 25% single-issuer limit \u2014 trim toward target."
+      },
+      {
+       "action": "TRIM",
+       "security": "Aggregate Bond",
+       "delta": -0.2446,
+       "from_weight": 0.36,
+       "to_weight": 0.1154,
+       "reason": "Vantage Funds at 78% exceeds the 25% single-issuer limit \u2014 trim toward target."
+      },
+      {
+       "action": "BUY",
+       "security": "Diversified Multi-Issuer Core",
+       "delta": 0.75,
+       "from_weight": 0.0,
+       "to_weight": 0.75,
+       "reason": "Reallocate freed weight across additional issuers so no single issuer exceeds 25%; preserves the mandate's asset mix."
+      }
+     ],
+     "projected_concentration": {
+      "Vantage Funds": 0.25,
+      "Diversified core (\u2264 limit per issuer)": 0.75
+     },
+     "max_issuer_after": 0.25,
+     "compliant_after": true
+    },
+    "draft": "## Portfolio Review Briefing: Jane Harrington\n\nThis briefing summarizes key findings for a portfolio review of Jane Harrington\u2019s account, considering her balanced risk profile with a 5-10 year investment horizon and a target asset mix of 60% equity / 40% fixed income [1].\n\n**Key Concerns & Concentrations:**\n\n*   **Issuer Concentration:** The portfolio exhibits significant issuer concentration. Vantage Funds represents 78% of the total portfolio weight [2], exceeding the firm\u2019s 25% policy limit [9]. NorthForge Inc. accounts for 22% [3].\n*   **Sector Concentration:** Equity holdings represent 42% of the portfolio [4], while Fixed Income represents 36% [5]. The Energy sector comprises a notable 22% [6].\n*   **Restricted Holdings:** NorthForge Energy, representing 22% of the portfolio, is on the restricted list due to active underwriting and material non-public information [8]. This holding requires immediate review [8].\n*   **Performance:** The portfolio\u2019s year-to-date (YTD) return is 0.5% [7].\n\n**Recommended Actions:**\n\nThe following trades are proposed to address the identified concentration risks and compliance issues:\n\n1.  **SELL NorthForge Energy (-22%)**: Divest in full due to restricted list status [10].\n2.  **TRIM Global Equity Index (-29%)**: Reduce exposure to Vantage Funds to mitigate issuer concentration [11].\n3.  **TRIM Aggregate Bond (-24%)**: Further reduce exposure to Vantage Funds to comply with the 25% single-issuer limit [12].\n4.  **BUY Diversified Multi-Issuer Core (+75%)**: Reallocate freed capital across a broader range of issuers, maintaining the target asset mix and ensuring no single issuer exceeds 25% after trade execution [13].\n\n---\n_This is a draft prepared for advisor review and is not investment advice until approved. Past performance does not guarantee future results._",
+    "citations": [
+     {
+      "marker": "[1]",
+      "source_id": "graph:C-1001:profile",
+      "title": "Client risk profile",
+      "snippet": "Risk profile: Balanced (tolerance=medium, horizon=5-10y). Suitable asset mix target: 60% equity / 40% fixed income."
+     },
+     {
+      "marker": "[2]",
+      "source_id": "graph:C-1001:issuer:Vantage Funds",
+      "title": "Issuer concentration \u2014 Vantage Funds",
+      "snippet": "Aggregate portfolio weight in issuer Vantage Funds is 78%."
+     },
+     {
+      "marker": "[3]",
+      "source_id": "graph:C-1001:issuer:NorthForge Inc.",
+      "title": "Issuer concentration \u2014 NorthForge Inc.",
+      "snippet": "Aggregate portfolio weight in issuer NorthForge Inc. is 22%."
+     },
+     {
+      "marker": "[4]",
+      "source_id": "graph:C-1001:sector:Equity",
+      "title": "Sector concentration \u2014 Equity",
+      "snippet": "Aggregate portfolio weight in the Equity sector is 42%."
+     },
+     {
+      "marker": "[5]",
+      "source_id": "graph:C-1001:sector:Fixed Income",
+      "title": "Sector concentration \u2014 Fixed Income",
+      "snippet": "Aggregate portfolio weight in the Fixed Income sector is 36%."
+     },
+     {
+      "marker": "[6]",
+      "source_id": "graph:C-1001:sector:Energy",
+      "title": "Sector concentration \u2014 Energy",
+      "snippet": "Aggregate portfolio weight in the Energy sector is 22%."
+     },
+     {
+      "marker": "[7]",
+      "source_id": "tool:market",
+      "title": "Market data (synthetic feed)",
+      "snippet": "portfolio YTD 0.5%"
+     },
+     {
+      "marker": "[8]",
+      "source_id": "compliance:restricted_list",
+      "title": "Compliance finding \u2014 restricted_list",
+      "snippet": "Holdings on the restricted list: NorthForge Energy (22%). Reason: Active underwriting \u2014 material non-public information. Must be flagged for review."
+     },
+     {
+      "marker": "[9]",
+      "source_id": "compliance:concentration",
+      "title": "Compliance finding \u2014 concentration",
+      "snippet": "Largest single-issuer weight is Vantage Funds at 78%, above the 25% policy limit."
+     },
+     {
+      "marker": "[10]",
+      "source_id": "advice:rebalance",
+      "title": "Proposed trade \u2014 SELL NorthForge Energy",
+      "snippet": "SELL NorthForge Energy (-22%) \u2014 Restricted list (Restricted List) \u2014 divest in full."
+     },
+     {
+      "marker": "[11]",
+      "source_id": "advice:rebalance",
+      "title": "Proposed trade \u2014 TRIM Global Equity Index",
+      "snippet": "TRIM Global Equity Index (-29%) \u2014 Vantage Funds at 78% exceeds the 25% single-issuer limit \u2014 trim toward target."
+     },
+     {
+      "marker": "[12]",
+      "source_id": "advice:rebalance",
+      "title": "Proposed trade \u2014 TRIM Aggregate Bond",
+      "snippet": "TRIM Aggregate Bond (-24%) \u2014 Vantage Funds at 78% exceeds the 25% single-issuer limit \u2014 trim toward target."
+     },
+     {
+      "marker": "[13]",
+      "source_id": "advice:rebalance",
+      "title": "Proposed trade \u2014 BUY Diversified Multi-Issuer Core",
+      "snippet": "BUY Diversified Multi-Issuer Core (+75%) \u2014 Reallocate freed weight across additional issuers so no single issuer exceeds 25%; preserves the mandate's asset mix."
+     }
+    ]
+   },
+   "eval": {
+    "overall": 0.888,
+    "citation_coverage": {
+     "score": 0.706,
+     "cited": 12,
+     "total": 17
+    },
+    "groundedness": {
+     "score": 0.94,
+     "unsupported": []
+    },
+    "suitability": {
+     "score": 1.0,
+     "missed": []
+    }
+   }
+  },
+  "marcus": {
+   "request": "Review C-1002's portfolio for concentration and suitability",
+   "trace": [
+    {
+     "node": "plan",
+     "intent": "portfolio_review",
+     "client_id": "C-1002"
+    },
+    {
+     "node": "input_guard",
+     "blocked": false,
+     "pii_redacted": []
+    },
+    {
+     "node": "retrieve",
+     "query": "Review C-1002's portfolio for concentration and suitability",
+     "kept": 5,
+     "mean_grade": 0.84,
+     "attempt": 1
+    },
+    {
+     "node": "market",
+     "n_holdings": 3,
+     "portfolio_ytd": 0.1369
+    },
+    {
+     "node": "compliance",
+     "status": "warn",
+     "checks": {
+      "suitability": "pass",
+      "restricted_list": "pass",
+      "concentration": "warn"
+     }
+    },
+    {
+     "node": "rebalance",
+     "trades": 4,
+     "compliant_after": true
+    },
+    {
+     "node": "draft",
+     "n_citations": 11
+    },
+    {
+     "node": "output_guard",
+     "issues": []
+    }
+   ],
+   "final": {
+    "type": "awaiting_approval",
+    "run_id": "run-2",
+    "client_id": "C-1002",
+    "compliance_status": "warn",
+    "compliance": [
+     {
+      "check": "suitability",
+      "status": "pass",
+      "detail": "Equity weight 80% is within tolerance of the Growth target 80%."
+     },
+     {
+      "check": "restricted_list",
+      "status": "pass",
+      "detail": "No holdings appear on the restricted list."
+     },
+     {
+      "check": "concentration",
+      "status": "warn",
+      "detail": "Largest single-issuer weight is Apex ETFs at 50%, above the 25% policy limit."
+     }
+    ],
+    "rebalance": {
+     "trades": [
+      {
+       "action": "TRIM",
+       "security": "Tech Growth ETF",
+       "delta": -0.25,
+       "from_weight": 0.5,
+       "to_weight": 0.25,
+       "reason": "Apex ETFs at 50% exceeds the 25% single-issuer limit \u2014 trim toward target."
+      },
+      {
+       "action": "TRIM",
+       "security": "Global Equity Index",
+       "delta": -0.15,
+       "from_weight": 0.3,
+       "to_weight": 0.15,
+       "reason": "Vantage Funds at 50% exceeds the 25% single-issuer limit \u2014 trim toward target."
+      },
+      {
+       "action": "TRIM",
+       "security": "Aggregate Bond",
+       "delta": -0.1,
+       "from_weight": 0.2,
+       "to_weight": 0.1,
+       "reason": "Vantage Funds at 50% exceeds the 25% single-issuer limit \u2014 trim toward target."
+      },
+      {
+       "action": "BUY",
+       "security": "Diversified Multi-Issuer Core",
+       "delta": 0.5,
+       "from_weight": 0.0,
+       "to_weight": 0.5,
+       "reason": "Reallocate freed weight across additional issuers so no single issuer exceeds 25%; preserves the mandate's asset mix."
+      }
+     ],
+     "projected_concentration": {
+      "Apex ETFs": 0.25,
+      "Vantage Funds": 0.25,
+      "Diversified core (\u2264 limit per issuer)": 0.5
+     },
+     "max_issuer_after": 0.25,
+     "compliant_after": true
+    },
+    "draft": "## Portfolio Review Briefing: Marcus Bell (C-1002)\n\n**Date:** October 26, 2023\n\nThis briefing reviews Marcus Bell\u2019s portfolio for concentration and suitability. Mr. Bell's risk profile is Growth with a high tolerance and investment horizon exceeding 10 years [1]. The target asset mix should be 80% equity / 20% fixed income [1].\n\n**Concentration Issues:**\n\n*   The portfolio exhibits significant issuer concentration, with Apex ETFs representing 50% of the total portfolio [2] and Vantage Funds also at 50% [3].\n*   Apex ETFs currently hold the largest single-issuer weight at 50%, exceeding the firm\u2019s policy limit of 25% [7].\n*   The Equity sector comprises 80% of the portfolio, while Fixed Income represents only 20% [4, 5].\n*   Year-to-date (YTD) return is 13.7% [6].\n\n**Recommended Actions:**\n\nTo address concentration risks and align with policy limits:\n\n*   TRIM Tech Growth ETF (-25%) \u2013 Apex ETFs\n*   TRIM Global Equity Index (-15%) \u2013 Vantage Funds\n*   TRIM Aggregate Bond (-10%) \u2013 Vantage Funds\n*   BUY Diversified Multi-Issuer Core (+50%)\n\n\n\nFollowing these trades, the largest single issuer will be capped at 25% [11], and the asset mix will remain consistent with the client\u2019s mandate.\n\n---\n_This is a draft prepared for advisor review and is not investment advice until approved. Past performance does not guarantee future results._",
+    "citations": [
+     {
+      "marker": "[1]",
+      "source_id": "graph:C-1002:profile",
+      "title": "Client risk profile",
+      "snippet": "Risk profile: Growth (tolerance=high, horizon=>10y). Suitable asset mix target: 80% equity / 20% fixed income."
+     },
+     {
+      "marker": "[2]",
+      "source_id": "graph:C-1002:issuer:Apex ETFs",
+      "title": "Issuer concentration \u2014 Apex ETFs",
+      "snippet": "Aggregate portfolio weight in issuer Apex ETFs is 50%."
+     },
+     {
+      "marker": "[3]",
+      "source_id": "graph:C-1002:issuer:Vantage Funds",
+      "title": "Issuer concentration \u2014 Vantage Funds",
+      "snippet": "Aggregate portfolio weight in issuer Vantage Funds is 50%."
+     },
+     {
+      "marker": "[4]",
+      "source_id": "graph:C-1002:sector:Equity",
+      "title": "Sector concentration \u2014 Equity",
+      "snippet": "Aggregate portfolio weight in the Equity sector is 80%."
+     },
+     {
+      "marker": "[5]",
+      "source_id": "graph:C-1002:sector:Fixed Income",
+      "title": "Sector concentration \u2014 Fixed Income",
+      "snippet": "Aggregate portfolio weight in the Fixed Income sector is 20%."
+     },
+     {
+      "marker": "[6]",
+      "source_id": "tool:market",
+      "title": "Market data (synthetic feed)",
+      "snippet": "portfolio YTD 13.7%"
+     },
+     {
+      "marker": "[7]",
+      "source_id": "compliance:concentration",
+      "title": "Compliance finding \u2014 concentration",
+      "snippet": "Largest single-issuer weight is Apex ETFs at 50%, above the 25% policy limit."
+     },
+     {
+      "marker": "[8]",
+      "source_id": "advice:rebalance",
+      "title": "Proposed trade \u2014 TRIM Tech Growth ETF",
+      "snippet": "TRIM Tech Growth ETF (-25%) \u2014 Apex ETFs at 50% exceeds the 25% single-issuer limit \u2014 trim toward target."
+     },
+     {
+      "marker": "[9]",
+      "source_id": "advice:rebalance",
+      "title": "Proposed trade \u2014 TRIM Global Equity Index",
+      "snippet": "TRIM Global Equity Index (-15%) \u2014 Vantage Funds at 50% exceeds the 25% single-issuer limit \u2014 trim toward target."
+     },
+     {
+      "marker": "[10]",
+      "source_id": "advice:rebalance",
+      "title": "Proposed trade \u2014 TRIM Aggregate Bond",
+      "snippet": "TRIM Aggregate Bond (-10%) \u2014 Vantage Funds at 50% exceeds the 25% single-issuer limit \u2014 trim toward target."
+     },
+     {
+      "marker": "[11]",
+      "source_id": "advice:rebalance",
+      "title": "Proposed trade \u2014 BUY Diversified Multi-Issuer Core",
+      "snippet": "BUY Diversified Multi-Issuer Core (+50%) \u2014 Reallocate freed weight across additional issuers so no single issuer exceeds 25%; preserves the mandate's asset mix."
+     }
+    ]
+   },
+   "eval": {
+    "overall": 0.87,
+    "citation_coverage": {
+     "score": 0.7,
+     "cited": 7,
+     "total": 10
+    },
+    "groundedness": {
+     "score": 0.9,
+     "unsupported": []
+    },
+    "suitability": {
+     "score": 1.0,
+     "missed": []
+    }
+   }
+  },
+  "blocked": {
+   "request": "Can you guarantee 20% returns for Jane next year?",
+   "trace": [
+    {
+     "node": "plan",
+     "intent": "general",
+     "client_id": "C-1001"
+    },
+    {
+     "node": "input_guard",
+     "blocked": true,
+     "pii_redacted": []
+    },
+    {
+     "node": "refuse",
+     "reason": "input policy block"
+    }
+   ],
+   "final": {
+    "type": "completed",
+    "run_id": "run-3",
+    "final": "This request cannot be processed: it asks for an action the firm's policy prohibits. Escalating to a human compliance officer."
+   }
+  }
+ }
+}
